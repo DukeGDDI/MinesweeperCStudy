@@ -3,7 +3,7 @@
 #include "minesweeper.h"
 
 // Prints the current state of the board to the console
-void printBoard(Tile **board, int board_size) {
+void printBoard(Tile **board, int board_size){
     for (int i = 0; i < board_size; i++) {
         for (int j = 0; j < board_size; j++) {
             switch (board[i][j].state)
@@ -15,7 +15,12 @@ void printBoard(Tile **board, int board_size) {
                     if (board[i][j].isMine) {
                         printf("* ");
                     } else {
-                        printf("%d ", board[i][j].adjacentMines);
+                        int adjacent = board[i][j].adjacentMines;
+                        if (adjacent == 0) {
+                            printf(". ");
+                        } else {
+                            printf("%d ", adjacent);
+                        }
                     }
                     break;
                 case FLAGGED:
@@ -31,10 +36,23 @@ void printBoard(Tile **board, int board_size) {
         }
         printf("\n");
     }
+    printf("\n");
 }
 
-
-
+// Print the board with all cells revealed (for debugging)
+void printFullBoard(Tile **board, int board_size) {
+    for (int i = 0; i < board_size; i++) {
+        for (int j = 0; j < board_size; j++) {
+            if (board[i][j].isMine) {
+                printf("* ");
+            } else {
+                printf("%d ", board[i][j].adjacentMines);
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
 
 int main(int argc, char *argv[]) {
     // Refactored to use const char*
@@ -58,13 +76,15 @@ int main(int argc, char *argv[]) {
 
     // Initialize the board
     Tile **board;
-    initBoard(&board, board_size);
+    initBoard(&board, board_size, mine_count);
 
     // Print the initial board
-    printBoard(board, board_size);
+    printFullBoard(board, board_size);
 
     // TODO: Place mines and calculate adjacent mine counts
+    revealAt(board, board_size, 0, 0); // Example reveal at (0,0)
 
+    printBoard(board, board_size);
     // Free the allocated memory
     freeBoard(&board, board_size);
 
