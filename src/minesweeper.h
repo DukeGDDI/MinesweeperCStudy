@@ -54,11 +54,11 @@ void toggleFlagAt(Tile **board, int n, int r, int c);
 // Save game state as binary file
 int saveGameToBinary(const char *filename, Tile **board, int board_size);
 
-// Load game state from binary file
+// Load game state from binary file (must allocate board first by calling `initBoard`)
 int loadGameFromBinary(const char *filename, Tile ***board, int *board_size);
 
 // Save game state as text file
 int saveGameToText(const char *filename, Tile **board, int board_size);
 
-// Load game state from text file
+// Load game state from text file (must allocate board first by calling `initBoard`)
 int loadGameFromText(const char *filename, Tile ***board, int *board_size);
