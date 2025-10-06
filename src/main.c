@@ -112,6 +112,8 @@ int main(int argc, char *argv[]) {
         freeBoard(&board, board_size);
         return 1;
     }
+    printf("Game saved to savegame.bin and savegame.txt\n");
+    
     // Free the allocated memory
     freeBoard(&board, board_size);
 
