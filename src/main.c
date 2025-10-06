@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "minesweeper.h"
 
 // Prints the current state of the board to the console
@@ -63,6 +64,12 @@ int main(int argc, char *argv[]) {
     if (argc > 3) {
         fprintf(stderr, "%s", usage);
         return 1;
+    }
+
+    // If 1 arg and it is "--help" or "-h", print usage
+    if (argc == 2 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)) {
+        printf("%s", usage);
+        return 0;
     }
 
     int board_size = DEFAULT_BOARD_SIZE; 

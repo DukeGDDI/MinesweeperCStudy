@@ -12,8 +12,9 @@ make run
 # Key Concepts for the Midterm 
 - File I/O (Binary and Text)
     - fopen / fclose
-    - fgetc, fgets, fread <--- used fread instead
-    - fprintf, fputc, fputs <--- used fwrite instead
+    - fgetc, fgets, fread <--- only used fread
+    - fprintf, fscanf
+    - fputc, fputs, fwrite <--- only used fwrite
 - Strings
     - strcmp
     - atoi
