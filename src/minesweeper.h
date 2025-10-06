@@ -21,8 +21,8 @@ typedef enum _tile_state {
 // Define the tile structure
 typedef struct _tile {
     TileState state;
-    int isMine;
-    int adjacentMines;
+    unsigned int isMine;
+    unsigned int adjacentMines;
 } Tile;
 
 // Creates the game board and initializes all tiles to COVERED state

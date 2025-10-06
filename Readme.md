@@ -46,9 +46,9 @@ make run
     - int - 4 Bytes (32 bits)
     - float - 4 Bytes (32 bits) <---- not used
     - double - 8 Bytes (64 bits) <---- not used
-    - unsigned <---- not used
+    - unsigned
     - Casting and Type Promotion (both are type conversions)
 - Custom Types
     - struct
     - enum
-    - typeof
+    - typedef
