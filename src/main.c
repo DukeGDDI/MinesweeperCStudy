@@ -83,11 +83,47 @@ int main(int argc, char *argv[]) {
     printFullBoard(board, board_size);
 
     // TODO: Place mines and calculate adjacent mine counts
-    revealAt(board, board_size, 0, 0); // Example reveal at (0,0)
+    int exploded = revealAt(board, board_size, 0, 0); // Example reveal at (0,0)
 
-    printBoard(board, board_size);
+    if (exploded) {
+        printf("Boom! You hit a mine!\n");
+    } else {
+        printf("Board after reveal:\n");
+        printBoard(board, board_size);
+    }
+
+
+    if (saveGameToBinary("savegame.bin", board, board_size) == 1) {
+        fprintf(stderr, "Failed to save game to binary file.\n");
+        freeBoard(&board, board_size);
+        return 1;
+    }
+    if (saveGameToText("savegame.txt", board, board_size) == 1) {
+        fprintf(stderr, "Failed to save game to text file.\n");
+        freeBoard(&board, board_size);
+        return 1;
+    }
     // Free the allocated memory
     freeBoard(&board, board_size);
 
+    initBoard(&board, board_size, mine_count);
+    if (loadGameFromBinary("savegame.bin", &board, &board_size) == -1) {
+        fprintf(stderr, "Failed to load game from binary file.\n");
+        freeBoard(&board, board_size);
+        return 1;
+    }
+    printf("Loaded game from binary file:\n");
+    printBoard(board, board_size);
+    freeBoard(&board, board_size);
+
+    initBoard(&board, board_size, mine_count);
+    if (loadGameFromText("savegame.txt", &board, &board_size) == -1) {
+        fprintf(stderr, "Failed to load game from text file.\n");
+        freeBoard(&board, board_size);
+        return 1;
+    }
+    printf("Loaded game from text file:\n");
+    printBoard(board, board_size);
+    freeBoard(&board, board_size);  
     return 0;
 }

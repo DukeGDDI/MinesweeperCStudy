@@ -50,3 +50,15 @@ int inBounds(int n, int r, int c);
 
 // Toggles flatg state: COVERED -> FLAGGED -> QUESTIONED -> COVERED
 void toggleFlagAt(Tile **board, int n, int r, int c);
+
+// Save game state as binary file
+int saveGameToBinary(const char *filename, Tile **board, int board_size);
+
+// Load game state from binary file
+int loadGameFromBinary(const char *filename, Tile ***board, int *board_size);
+
+// Save game state as text file
+int saveGameToText(const char *filename, Tile **board, int board_size);
+
+// Load game state from text file
+int loadGameFromText(const char *filename, Tile ***board, int *board_size);

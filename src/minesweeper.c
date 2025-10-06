@@ -122,3 +122,112 @@ int revealAt(Tile **board, int n, int r, int c) {
     return 0;
 }
 
+// Save game state as binary file
+int saveGameToBinary(const char *filename, Tile **board, int board_size) {
+    FILE *file = fopen(filename, "wb");
+    if (!file) return -1;
+
+    // Write board size
+    if (fwrite(&board_size, sizeof(int), 1, file) != 1) {
+        fclose(file);
+        return -1;
+    }
+
+    // Write each tile
+    for (int i = 0; i < board_size; i++) {
+        for (int j = 0; j < board_size; j++) {
+            Tile *t = &board[i][j];
+            if (fwrite(t, sizeof(Tile), 1, file) != 1) {
+                fclose(file);
+                return -1;
+            }
+        }
+    }
+
+    fclose(file);
+    return 0;
+}
+
+// Load game state from binary file
+int loadGameFromBinary(const char *filename, Tile ***board, int *board_size) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) return -1;
+
+    // Read board size
+    if (fread(board_size, sizeof(int), 1, file) != 1) {
+        fclose(file);
+        return -1;
+    }
+
+    // Allocate board
+    initBoard(board, *board_size, 0);
+
+    // Read each tile
+    for (int i = 0; i < *board_size; i++) {
+        for (int j = 0; j < *board_size; j++) {
+            Tile *t = &(*board)[i][j];
+            if (fread(t, sizeof(Tile), 1, file) != 1) {
+                fclose(file);
+                return -1;
+            }
+        }
+    }
+
+    fclose(file);
+    return 0;
+}
+
+// Save game state as text file that is human-readable (eg. # # F ? ...)
+int saveGameToText(const char *filename, Tile **board, int board_size) {
+    FILE *file = fopen(filename, "w");
+    if (!file) return -1;
+
+    // Write board size
+    if (fprintf(file, "%d\n", board_size) < 0) {
+        fclose(file);
+        return -1;
+    }
+
+    // Write each tile
+    for (int i = 0; i < board_size; i++) {
+        for (int j = 0; j < board_size; j++) {
+            Tile *t = &board[i][j];
+            if (fprintf(file, "%d %d %d\n", t->state, t->isMine, t->adjacentMines) < 0) {
+                fclose(file);
+                return -1;
+            }
+        }
+    }
+
+    fclose(file);
+    return 0;
+}
+
+// Load game state from text file
+int loadGameFromText(const char *filename, Tile ***board, int *board_size) {
+    FILE *file = fopen(filename, "r");
+    if (!file) return -1;
+
+    // Read board size
+    if (fscanf(file, "%d", board_size) != 1) {
+        fclose(file);
+        return -1;
+    }
+
+    // Allocate board
+    initBoard(board, *board_size, 0);
+
+    // Read each tile
+    for (int i = 0; i < *board_size; i++) {
+        for (int j = 0; j < *board_size; j++) {
+            Tile *t = &(*board)[i][j];
+            if (fscanf(file, "%d %d %d", (int *)&t->state, &t->isMine, &t->adjacentMines) != 3) {
+                fclose(file);
+                return -1;
+            }
+        }
+    }
+
+    fclose(file);
+    return 0;
+}
