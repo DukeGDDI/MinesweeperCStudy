@@ -62,15 +62,29 @@ void initBoard(Tile ***board, int board_size) {
     // Initialize all tiles
     for (int i = 0; i < board_size; i++) {
         for (int j = 0; j < board_size; j++) {
+            // Aproach 0: Direct field assignments (verbose)
+            // (*board)[i][j].state = COVERED;
+            // (*board)[i][j].isMine = 0;
+            // (*board)[i][j].adjacentMines = 0;
+
+            // Approach 1: Direct using -> operator (verbose)
+            // Tile *t = &(*board)[i][j];
+            // t->state = COVERED;
+            // t->isMine = 0;
+            // t->adjacentMines = 0;    
+
+            // Approach 2: Direct assignment (commented out)
             // Tile tile = (*board)[i][j];
             // tile.state = COVERED;
             // tile.isMine = 0;
             // tile.adjacentMines = 0;
+            
+            // Approach 3: Temporary variable (clearer for beginners)
+            // Tile t = {COVERED, 0, 0}; // C99 struct literal syntax
+            // (*board)[i][j] = t;
 
-            // (*board)[i][j] = (Tile){COVERED, 0, 0}; // C99 struct literal syntax
-
-            Tile t = {COVERED, 0, 0}; // C99 struct literal syntax
-            (*board)[i][j] = t;
+            // Approach 4: Struct literal (preferred)
+            (*board)[i][j] = (Tile){COVERED, 0, 0}; // C99 struct literal syntax
         }
     }
 }
