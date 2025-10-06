@@ -77,6 +77,7 @@ int main(int argc, char *argv[]) {
     // Initialize the board
     Tile **board;
     initBoard(&board, board_size, mine_count);
+    layMines(board, board_size, mine_count);
 
     // Print the initial board
     printFullBoard(board, board_size);

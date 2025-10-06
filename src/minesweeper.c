@@ -11,6 +11,7 @@
  * @author Rodney Aiglstorfer
  */
 
+// Randomly place mines and calculate adjacent mine counts
 void layMines(Tile **board, int board_size, int mine_count) {
     // Randomly place mines and calculate adjacent mine counts
     srand(time(NULL));
@@ -34,7 +35,8 @@ void layMines(Tile **board, int board_size, int mine_count) {
 }
 
 // Creates the game board and initializes all tiles to COVERED state
-// TODO: Add mine placement and adjacent mine counting
+// and no mines (you can add mine placement by calling layMines or 
+// loading from a file).
 void initBoard(Tile ***board, int board_size, int mine_count) {
     size_t bytes = board_size * sizeof(Tile *); // refactored to use size_t
     *board = malloc(bytes);
@@ -51,8 +53,6 @@ void initBoard(Tile ***board, int board_size, int mine_count) {
             tile.adjacentMines = 0;
         }
     }
-
-    layMines(*board, board_size, mine_count);
 }
 
 // Toggles flag state: COVERED -> FLAGGED -> QUESTIONED -> COVERED
