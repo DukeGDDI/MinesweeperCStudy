@@ -1,8 +1,15 @@
-# Key Concepts for the Midterm 
+# Overview
 The following is the study guide for the midterm.  It includes everything that we are expected to know for the test(s).
 This project implements almost 100% of the key concepts covered.  I created this as a way to prepare for the midterm
 and use the concepts in practice.
 
+# Running the code
+After you have checked out this project run
+```
+make run
+```
+
+# Key Concepts for the Midterm 
 - File I/O (Binary and Text)
     - fopen / fclose
     - fgetc, fgets, fread <--- used fread instead
