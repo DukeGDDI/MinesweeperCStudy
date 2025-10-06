@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
     // Initialize the board
     Tile **board;
-    initBoard(&board, board_size, mine_count);
+    initBoard(&board, board_size);
     layMines(board, board_size, mine_count);
 
     // Print the initial board
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
     // Free the allocated memory
     freeBoard(&board, board_size);
 
-    initBoard(&board, board_size, mine_count);
+    initBoard(&board, board_size);
     if (loadGameFromBinary("savegame.bin", &board, &board_size) == -1) {
         fprintf(stderr, "Failed to load game from binary file.\n");
         freeBoard(&board, board_size);
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
     printBoard(board, board_size);
     freeBoard(&board, board_size);
 
-    initBoard(&board, board_size, mine_count);
+    initBoard(&board, board_size);
     if (loadGameFromText("savegame.txt", &board, &board_size) == -1) {
         fprintf(stderr, "Failed to load game from text file.\n");
         freeBoard(&board, board_size);

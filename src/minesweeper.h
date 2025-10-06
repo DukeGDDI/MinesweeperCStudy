@@ -28,7 +28,7 @@ typedef struct _tile {
 // Creates the game board and initializes all tiles to COVERED state
 // and no mines (you can add mine placement by calling layMines or 
 // loading from a file).
-void initBoard(Tile ***board, int board_size, int mine_count);
+void initBoard(Tile ***board, int board_size);
 
 // Randomly place mines and calculate adjacent mine counts
 void layMines(Tile **board, int board_size, int mine_count);

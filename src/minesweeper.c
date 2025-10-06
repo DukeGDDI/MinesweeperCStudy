@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <time.h>
 #include "minesweeper.h"
 /**
  * A simple Minesweeper game implementation in C.
@@ -37,20 +38,39 @@ void layMines(Tile **board, int board_size, int mine_count) {
 // Creates the game board and initializes all tiles to COVERED state
 // and no mines (you can add mine placement by calling layMines or 
 // loading from a file).
-void initBoard(Tile ***board, int board_size, int mine_count) {
+//
+// Mental model: 2D array as array of pointers
+// +----------------+-----------+-------------------------------+
+// | Expression     | Type      | Meaning                       |
+// +----------------+-----------+-------------------------------+
+// | board          | Tile ***  | pointer to 2D array pointer   |
+// | *board         | Tile **   | the 2D array itself           |
+// | (*board)[i]    | Tile *    | the i-th row                  |
+// | (*board)[i][j] | Tile      | the tile at (i,j)             |
+// +----------------+-----------+-------------------------------+
+void initBoard(Tile ***board, int board_size) {
+    // Allocate memory for the rows (array of pointers)
+    // This allocates an array of Tile *, i.e., rows of your 2D grid.
     size_t bytes = board_size * sizeof(Tile *); // refactored to use size_t
     *board = malloc(bytes);
+    // Allocate memory for each row (array of Tile structs)
+    // Each (*board)[i] is a pointer to an array of Tile structs (the columns).
     for (int i = 0; i < board_size; i++) {
         bytes = board_size * sizeof(Tile); // refactored to use size_t
         (*board)[i] = malloc(bytes);
     }
-
+    // Initialize all tiles
     for (int i = 0; i < board_size; i++) {
         for (int j = 0; j < board_size; j++) {
-            Tile tile = (*board)[i][j];
-            tile.state = COVERED;
-            tile.isMine = 0;
-            tile.adjacentMines = 0;
+            // Tile tile = (*board)[i][j];
+            // tile.state = COVERED;
+            // tile.isMine = 0;
+            // tile.adjacentMines = 0;
+
+            // (*board)[i][j] = (Tile){COVERED, 0, 0}; // C99 struct literal syntax
+
+            Tile t = {COVERED, 0, 0}; // C99 struct literal syntax
+            (*board)[i][j] = t;
         }
     }
 }
@@ -159,9 +179,6 @@ int loadGameFromBinary(const char *filename, Tile ***board, int *board_size) {
         return -1;
     }
 
-    // Allocate board
-    initBoard(board, *board_size, 0);
-
     // Read each tile
     for (int i = 0; i < *board_size; i++) {
         for (int j = 0; j < *board_size; j++) {
@@ -213,9 +230,6 @@ int loadGameFromText(const char *filename, Tile ***board, int *board_size) {
         fclose(file);
         return -1;
     }
-
-    // Allocate board
-    initBoard(board, *board_size, 0);
 
     // Read each tile
     for (int i = 0; i < *board_size; i++) {
