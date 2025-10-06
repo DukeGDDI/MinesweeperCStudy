@@ -82,11 +82,13 @@ int main(int argc, char *argv[]) {
     // Print the initial board
     printFullBoard(board, board_size);
 
-    // TODO: Place mines and calculate adjacent mine counts
-    int exploded = revealAt(board, board_size, 0, 0); // Example reveal at (0,0)
+    // Example reveal at (0,0)
+    int exploded = revealAt(board, board_size, 0, 0); 
 
     if (exploded) {
         printf("Boom! You hit a mine!\n");
+        freeBoard(&board, board_size); // Free memory before exiting
+        return 1;
     } else {
         printf("Board after reveal:\n");
         printBoard(board, board_size);
