@@ -223,7 +223,7 @@ int saveGameToText(const char *filename, Tile **board, int board_size) {
     for (int i = 0; i < board_size; i++) {
         for (int j = 0; j < board_size; j++) {
             Tile *t = &board[i][j];
-            if (fprintf(file, "%d %d %d\n", t->state, t->isMine, t->adjacentMines) < 0) {
+            if (fprintf(file, "%d %u %u\n", t->state, t->isMine, t->adjacentMines) < 0) {
                 fclose(file);
                 return -1;
             }
@@ -249,7 +249,7 @@ int loadGameFromText(const char *filename, Tile ***board, int *board_size) {
     for (int i = 0; i < *board_size; i++) {
         for (int j = 0; j < *board_size; j++) {
             Tile *t = &(*board)[i][j];
-            if (fscanf(file, "%d %d %d", (int *)&t->state, &t->isMine, &t->adjacentMines) != 3) {
+            if (fscanf(file, "%d %u %u", (int *)&t->state, &t->isMine, &t->adjacentMines) != 3) {
                 fclose(file);
                 return -1;
             }
