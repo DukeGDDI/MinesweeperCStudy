@@ -91,7 +91,7 @@ void initBoard(Tile ***board, int board_size) {
 
 // Toggles flag state: COVERED -> FLAGGED -> QUESTIONED -> COVERED
 void toggleFlagAt(Tile **board, int n, int r, int c) {
-    assert(!inBounds(n, r, c));
+    assert(inBounds(n, r, c)); // must be in bounds
 
     Tile *t = &board[r][c];
     if (t->state == COVERED) {
