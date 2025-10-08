@@ -1,41 +1,51 @@
-# === Compiler and flags ===
+# ====== Minesweeper Makefile ======
+
+# Compiler and flags
 CC      := gcc
-CFLAGS  := -Wall -Wextra -pedantic -std=c11
-BUILD   := build
-TARGET  := minesweeper
+CFLAGS  := -Wall -Wextra -O2
 
-# === Source and object files ===
+# Directories and file lists
 SRC_DIR := src
-OBJ_DIR := $(BUILD)
-SRC     := $(wildcard $(SRC_DIR)/*.c)
-OBJ     := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
+OBJ_DIR := obj
+BIN_DIR := bin
 
-# === Default target ===
-all: $(BUILD) $(TARGET)
+SRCS    := $(SRC_DIR)/main.c $(SRC_DIR)/minesweeper.c
+OBJS    := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+EXEC    := $(BIN_DIR)/minesweeper
 
-# === Link final executable ===
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+# Libraries
+LIBS    := -lncursesw     # ncursesw for wide-character support
 
-# === Compile each .c into .o ===
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/minesweeper.h
+# ====== Build Rules ======
+
+# Default target
+all: $(EXEC)
+
+# Link final binary
+$(EXEC): $(OBJS) | $(BIN_DIR)
+	@echo "Linking $@ ..."
+	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LIBS)
+
+# Compile source files
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	@echo "Compiling $< ..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# === Ensure build directory exists ===
-$(BUILD):
-	mkdir -p $(BUILD)
+# Create necessary folders
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
-# === Run the program ===
-run: all
-	./$(TARGET)
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
 
-# === Debug build ===
-debug: CFLAGS += -g -O0
-debug: clean all
-
-# === Clean build artifacts ===
+# Clean up build artifacts
 clean:
-	rm -rf $(BUILD) $(TARGET)
+	@echo "Cleaning..."
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-# === Phony targets ===
-.PHONY: all run clean debug
+# Run the game
+run: all
+	./$(EXEC)
+
+# ====== Convenience ======
+.PHONY: all clean run
