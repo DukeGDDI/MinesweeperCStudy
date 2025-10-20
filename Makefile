@@ -1,52 +1,95 @@
-# ====== Minesweeper Makefile (C++) ======
-
-# Compiler and flags
+# Compiler/flags
 CXX      := g++
-CXXFLAGS := -Wall -Wextra -O2 -std=c++17 -MMD -MP
+CXXFLAGS := -Wall -Wextra -O2 -std=c++17 -Iinclude
 
-# Directories
-SRC_DIR := src
-BUILD_DIR := build
+# Output dirs
+BIN_DIR := build/bin
+OBJ_DIR := build/obj
+LIB_DIR := build/lib
 
-# Source and header files
-SRCS    := $(SRC_DIR)/main.cpp $(SRC_DIR)/minesweeper.cpp
-OBJS    := $(SRCS:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
-EXEC    := $(BUILD_DIR)/minesweeper
+# Core lib
+LIB_SRC := src/minesweeper.cpp
+LIB_OBJ := $(LIB_SRC:%.cpp=$(OBJ_DIR)/%.o)
+LIB_A   := $(LIB_DIR)/libminesweeper.a
 
-# Libraries
-LIBS    := -lncurses
+# Optional components (existence-checked)
+TEST_SRC := $(wildcard tests/main.cpp)
+TUI_SRC  := $(wildcard tui/app.cpp)
 
-# ====== Build Rules ======
+# Derived
+TEST_OBJ := $(TEST_SRC:%.cpp=$(OBJ_DIR)/%.o)
+TEST_BIN := $(BIN_DIR)/ms_test
 
-# Default target
-all: $(EXEC)
+TUI_OBJ  := $(TUI_SRC:%.cpp=$(OBJ_DIR)/%.o)
+TUI_BIN  := $(BIN_DIR)/ms_tui
 
-# Link final binary
-$(EXEC): $(OBJS) | $(BUILD_DIR)
-	@echo "Linking $@ ..."
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $@ $(LIBS)
+# Detect ncurses (prefer pkg-config)
+UNAME_S := $(shell uname -s)
+PKG_NCURSESW := $(shell pkg-config --libs --cflags ncursesw 2>/dev/null)
+PKG_NCURSES  := $(shell pkg-config --libs --cflags ncurses  2>/dev/null)
 
-# Compile source files (.cpp -> .o)
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	@echo "Compiling $< ..."
+ifeq ($(strip $(PKG_NCURSESW)),)
+  ifeq ($(strip $(PKG_NCURSES)),)
+    ifeq ($(UNAME_S),Darwin)
+      NCURSES_LIBS := -lncurses
+      NCURSES_CFLAGS :=
+    else
+      NCURSES_LIBS := -lncursesw
+      NCURSES_CFLAGS :=
+    endif
+  else
+    NCURSES_LIBS   := $(shell pkg-config --libs ncurses)
+    NCURSES_CFLAGS := $(shell pkg-config --cflags ncurses)
+  endif
+else
+  NCURSES_LIBS   := $(shell pkg-config --libs ncursesw)
+  NCURSES_CFLAGS := $(shell pkg-config --cflags ncursesw)
+endif
+
+TUI_DEFS := -D_XOPEN_SOURCE_EXTENDED
+
+.PHONY: all clean run-test run-tui
+all: $(LIB_A) maybe-test maybe-tui
+
+maybe-test: $(LIB_A)
+ifeq ($(TEST_SRC),)
+	@echo "(tests/main.cpp not found) skipping ms_test"
+else
+	@$(MAKE) $(TEST_BIN)
+endif
+
+maybe-tui: $(LIB_A)
+ifeq ($(TUI_SRC),)
+	@echo "(tui/app.cpp not found) skipping ms_tui"
+else
+	@$(MAKE) $(TUI_BIN)
+endif
+
+# Library
+$(LIB_A): $(LIB_OBJ)
+	@mkdir -p $(LIB_DIR)
+	ar rcs $@ $^
+
+# Generic compile rule
+$(OBJ_DIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Create necessary folders
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+# Link test binary (if present)
+$(TEST_BIN): $(LIB_A) $(TEST_OBJ)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-# Clean up build artifacts
+# Link TUI binary (if present)
+$(TUI_BIN): $(LIB_A) $(TUI_OBJ)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(TUI_DEFS) $(NCURSES_CFLAGS) $^ -o $@ $(NCURSES_LIBS)
+
 clean:
-	@echo "Cleaning..."
-	rm -rf $(BUILD_DIR)
+	rm -rf build
 
-# Run the game
-run: all
-	./$(EXEC)
+run-test: $(TEST_BIN)
+	$(TEST_BIN)
 
-# Auto-generated header dependencies
-DEPS := $(OBJS:.o=.d)
--include $(DEPS)
-
-# ====== Convenience ======
-.PHONY: all clean run
+run-tui: $(TUI_BIN)
+	$(TUI_BIN)

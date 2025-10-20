@@ -84,10 +84,11 @@ class Board {
 
     // Load game state from a stream
     int load(istream& out);
-
-    private:
+    
     // @return  true if (row,col) is within bounds of the board, false otherwise
     bool inBounds(int row, int col);
+    
+    private:
 
     // Randomly place mines and calculate adjacent mine counts
     void layMines();
