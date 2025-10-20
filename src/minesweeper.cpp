@@ -1,4 +1,31 @@
 #include "minesweeper.hpp"
+#include <cassert>
+
+
+// Overload output operator for TileState for debugging only
+ostream& operator<<(ostream& out, const TileState& state) {
+    switch (state) {
+        case COVERED:
+            out << "COVERED";
+            break;
+        case REVEALED:
+            out << "REVEALED";
+            break;
+        case FLAGGED:
+            out << "FLAGGED";
+            break;
+        case QUESTIONED:
+            out << "QUESTIONED";
+            break;
+        case EXPLODED:
+            out << "EXPLODED";
+            break;
+        default:
+            out << "UNKNOWN";
+            break;
+    }
+    return out;
+}
 
 // Overload output operator for Tile
 ostream& operator<<(ostream& out, const Tile& tile) {
@@ -14,6 +41,13 @@ ostream& operator<<(ostream& out, const Tile& tile) {
     return out;
 }
 
+// Overload the equality operator for testing purposes
+bool operator==(const Tile& t1, const Tile& t2) {
+    return (t1.state == t2.state &&
+            t1.isMine == t2.isMine &&
+            t1.adjacentMines == t2.adjacentMines);
+}
+
 // Overload output operator for Board for debugging only
 // Shows all tiles regardless of state (e.g., covered tiles are shown)
 ostream& operator<<(ostream& out, const Board& board) {
@@ -24,6 +58,21 @@ ostream& operator<<(ostream& out, const Board& board) {
         out << "\n";
     }
     return out;
+}
+
+// Overload the equality operator for testing purposes
+bool operator==(const Board& b1, const Board& b2) {
+    if (b1.rows != b2.rows || b1.columns != b2.columns || b1.mines != b2.mines) {
+        return false;
+    }
+    for (int r = 0; r < b1.rows; r++) {
+        for (int c = 0; c < b1.columns; c++) {
+            if (!(b1.tiles[r][c] == b2.tiles[r][c])) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 Board::Board(int rows, int columns, int mines) {
@@ -62,7 +111,27 @@ Board::Board(istream& in) {
     this->calculateAdjacents();
 }
 
+// @return number of columns
+int Board::getColumns() {
+    return this->columns;
+}
+
+// @return number of rows
+int Board::getRows() {
+    return this->rows;
+}
+
+// Get tile state at (row,col)
+Tile Board::getTile(int row, int col) {
+    // Assert is in bounds
+    assert(inBounds(row, col) && "getTile: (row,col) out of bounds");
+    return this->tiles[row][col];
+}
+
 bool Board::revealTile(int row, int col) {
+    // Assert is in bounds
+    assert(inBounds(row, col) && "revealTile: (row,col) out of bounds");
+    
     Tile& tile = this->tiles[row][col];
     if (tile.state == REVEALED || tile.state == FLAGGED || tile.state == QUESTIONED) {
         return false; // do nothing
@@ -90,6 +159,9 @@ bool Board::revealTile(int row, int col) {
 }
 
 TileState Board::toggleTile(int row, int col) {
+    // Assert is in bounds
+    assert(inBounds(row, col) && "toggleTile: (row,col) out of bounds");
+
     Tile& tile = this->tiles[row][col];
     switch (tile.state) {
         case COVERED:
@@ -158,4 +230,41 @@ void Board::calculateAdjacents() {
             this->tiles[r][c].adjacentMines = count;
         }
     }
+}
+
+int Board::save(ostream& out) {
+    // Save rows, columns, mines
+    out << this->rows << " " << this->columns << " " << this->mines << "\n";
+    // Save each tile's state
+    for (int r = 0; r < this->rows; r++) {
+        for (int c = 0; c < this->columns; c++) {
+            Tile& tile = this->tiles[r][c];
+            out << static_cast<int>(tile.state) << " " << tile.isMine << " " << tile.adjacentMines << "\n";
+        }
+    }
+    return 0; // success
+}
+
+int Board::load(istream& in) {
+    int r, c, m;
+    in >> r >> c >> m;
+    if (r <= 0 || c <= 0 || m < 0) {
+        return -1; // invalid dimensions
+    }
+    this->rows = r;
+    this->columns = c;
+    this->mines = m;
+    this->tiles.resize(this->rows, vector<Tile>(this->columns));
+    for (int row = 0; row < this->rows; row++) {
+        for (int col = 0; col < this->columns; col++) {
+            int stateInt;
+            bool isMine;
+            unsigned int adjacentMines;
+            in >> stateInt >> isMine >> adjacentMines;
+            this->tiles[row][col].state = static_cast<TileState>(stateInt);
+            this->tiles[row][col].isMine = isMine;
+            this->tiles[row][col].adjacentMines = adjacentMines;
+        }
+    }
+    return 0; // success
 }

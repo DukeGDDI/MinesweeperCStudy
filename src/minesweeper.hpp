@@ -12,6 +12,9 @@ using namespace std;
     EXPLODED
 };
 
+// Overload output operator for TileState for debugging only
+ostream& operator<<(ostream& out, const TileState& state);
+
 // Define the tile structure
 struct Tile {
     TileState state = COVERED;
@@ -21,6 +24,9 @@ struct Tile {
     // Overload output operator for Tile for debugging only
     // Shows the tile content regardless of state
     friend ostream& operator<<(ostream& out, const Tile& tile);
+
+    // Overload the equality operator for testing purposes
+    friend bool operator==(const Tile& t1, const Tile& t2);
 };
 
 class Board {
@@ -51,6 +57,15 @@ class Board {
     // . . . . . *
     Board(istream& in);
 
+    // @return number of rows
+    int getRows();
+
+    // @return number of columns
+    int getColumns();
+
+    // @return tag state for tile at (row,col)
+    Tile getTile(int row, int col);
+
     // Reveal logic:
     // - If tile is FLAGGED/QUESTIONED/REVEALED: do nothing
     // - If tile is a mine: returns 1 to indicate explosion (the caller can handle game over
@@ -59,18 +74,16 @@ class Board {
     // - If tile has adjacentMines == 0: reveal it and recursively reveal neighbors
     // @return true if a mine was revealed (explosion), 0 otherwise
     bool revealTile(int row, int col);
-    
-    // Toggles flatg state: COVERED -> FLAGGED -> QUESTIONED -> COVERED
-    // @returns The TileState after toggle
-    TileState toggleTile(int row, int col);
 
-    
+    // Toggles tile state: COVERED -> FLAGGED -> QUESTIONED -> COVERED
+    // @return The TileState after toggle
+    TileState toggleTile(int row, int col);
     
     // Save game state to a stream
-    // int save(ostream& in);
+    int save(ostream& in);
 
     // Load game state from a stream
-    // int load(istream& out);
+    int load(istream& out);
 
     private:
     // @return  true if (row,col) is within bounds of the board, false otherwise
@@ -84,5 +97,8 @@ class Board {
 
     // Overload output operator for Board for debugging only
     // Shows all tiles regardless of state (e.g., covered tiles are shown)
-    friend ostream& operator<<(ostream& out, const Board& board);   
+    friend ostream& operator<<(ostream& out, const Board& board);
+    
+    // Overload the equality operator for testing purposes
+    friend bool operator==(const Board& b1, const Board& b2);
 };
