@@ -1,210 +1,152 @@
-# 🧨 Terminal Minesweeper (C + ncurses)
+# 🧨 Minesweeper (C++ + ncurses)
 
-A fully playable **Minesweeper** clone written in **C** using the **ncurses** library for a retro terminal UI.  
-Move with your arrow keys, flag tiles, reveal spaces, and survive the mines — all in glorious ANSI color.
+A classic **Minesweeper** implementation written in **modern C++**, featuring a fully playable ASCII-based UI built on **ncurses**.
 
-![screenshot](docs/ASCIIMinesweeper.gif)
+This project cleanly separates the *game logic* (`Board` class) from the *terminal interface* (`tui/app.cpp`), allowing both easy testing and a nostalgic command-line gameplay experience.
 
 ---
 
 ## 🎮 Features
 
-- Classic Minesweeper gameplay  
-- Arrow-key movement with highlighted cursor  
-- Color-coded numbers (matching the original Minesweeper)  
-- Save and load capability (`savegame.bin`)  
-- Restart instantly without quitting  
-- UTF-8 “black square” cursor marker for revealed blanks  
-- Fully keyboard-driven interface  
-- Works on Linux, macOS, and Windows (via WSL or MSYS2)
+- **Pure C++ game logic** (in `minesweeper.cpp` / `minesweeper.hpp`)
+- **Interactive ncurses TUI**
+  - Arrow keys or H/J/K/L to move
+  - Space or Enter to reveal
+  - `f` to toggle flags
+  - `r` to restart
+  - `s` to save game
+  - `q` to quit
+- **Left-aligned board layout**
+- **Highlight on all tiles** (even revealed ones)
+- **Save and restore** game state via `Board::save()` and `Board::load()`
+- **Configurable board size and mine count** via command line
 
 ---
 
 ## 🧰 Requirements
 
-- **C compiler** (GCC or Clang)
-- **ncurses** or **ncursesw** development package  
-  - Ubuntu / Debian:  
-    ```bash
-    sudo apt install libncursesw5-dev
-    ```
-  - macOS:  
-    ```bash
-    brew install ncurses
-    ```
+- A C++17 (or newer) compiler  
+- [ncurses](https://invisible-island.net/ncurses/) (installed by default on most Linux and macOS systems)
+
+On macOS:
+```bash
+brew install ncurses
+```
+
+On Debian/Ubuntu:
+```bash
+sudo apt install libncurses5-dev libncursesw5-dev
+```
 
 ---
 
 ## ⚙️ Build Instructions
 
-Clone the repository and build:
-
+### Using Makefile
 ```bash
-git clone https://github.com/yourusername/minesweeper-c.git
-cd minesweeper-c
 make
-````
-
-This will produce the binary in:
-
-```
-bin/minesweeper
 ```
 
-Run it with:
+---
 
+## ▶️ Usage
+
+### Start a new default game (16×30, 99 mines)
 ```bash
-./bin/minesweeper
+./ms_tui
 ```
 
----
-
-## 🧾 Command Line Options
-
-You can optionally specify **board size** and **mine count**:
-
+### Start a custom game
 ```bash
-./bin/minesweeper <board-size> <mine-count>
+./ms_tui <rows> <columns> <mines>
+# Example:
+./ms_tui 10 20 40
 ```
 
-Examples:
-
+### Resume from a saved game
 ```bash
-./bin/minesweeper 10 15     # 10x10 grid with 15 mines
-./bin/minesweeper 20 40     # 20x20 grid with 40 mines
+./ms_tui path/to/savefile.txt
 ```
 
----
-
-## 🎮 Controls
-
-| Key          | Action                                              |
-| ------------ | --------------------------------------------------- |
-| **↑ ↓ ← →**  | Move cursor                                         |
-| **Spacebar** | Reveal tile                                         |
-| **F**        | Toggle flag → question → covered                    |
-| **S**        | Save current game to `savegame.bin`                 |
-| **R**        | Restart new random board (same size and mine count) |
-| **Q**        | Quit the game immediately                           |
+If you omit the extension, it defaults to `ms_save.txt`.
 
 ---
 
-## 🎨 Colors
+## 🧩 Controls
 
-| Number | Color            |
-| ------ | ---------------- |
-| 1      | Blue             |
-| 2      | Green            |
-| 3      | Red              |
-| 4      | Indigo / Magenta |
-| 5      | Brownish-Red     |
-| 6      | Cyan             |
-| 7      | Black            |
-| 8      | Gray             |
+| Key | Action |
+|-----|---------|
+| ⬆️ / ⬇️ / ⬅️ / ➡️ or **H/J/K/L** | Move cursor |
+| **Space / Enter** | Reveal tile |
+| **f** | Toggle flag / question mark |
+| **r** | Restart current board |
+| **s** | Save current game |
+| **q** | Quit |
 
 ---
 
-## 💾 Saving
+## 💾 Save and Load
 
-Press **`S`** at any time to save your current board to:
+- Games are saved using the `Board::save(path)` method, which stores all tile states and metadata.  
+- Use `Board::load(path)` to restore a saved game.
+- When loading via command line (`./ms_tui savefile.txt`), the game infers board dimensions and mine count automatically.
+
+---
+
+## 🧱 Project Structure
 
 ```
-savegame.bin
-```
-
-> ⚠️ The save format is a simple binary dump — portable between runs on the same system.
-
----
-
-## 🔁 Restarting
-
-Press **`R`** to instantly start a new game with the same board size and mine count.
-If you hit a mine, you can restart immediately without quitting.
-
----
-
-## 🧱 File Structure
-
-```
-.
+minesweeper/
+├── include/
+│   └── minesweeper.hpp        # Core game logic header
 ├── src/
-│   ├── main.c              # Game UI & input loop
-│   └── minesweeper.c       # Game logic
-├── minesweeper.h           # Data structures & function declarations
-├── Makefile                # Build script
-├── README.md               # This file
-└── savegame.bin            # Generated when you save
+│   └── minesweeper.cpp        # Game logic implementation
+├── tui/
+│   └── app.cpp                # ncurses interface (this app)
+├── tests/
+│   └── main.cpp               # Optional test harness
+├── build/
+│   ├── bin/                   # Compiled binaries
+│   └── lib/                   # Optional static libs
+└── README.md
 ```
 
 ---
 
-## 🧠 Technical Notes
+## 🧠 Design Notes
 
-* Uses **ncurses** for terminal control, colors, and key handling.
-* UTF-8 locale enabled for rendering the black square cursor (`■`).
-* Uses modular board logic via `minesweeper.h` (separate from UI).
-* Portable C99-compliant codebase.
-
----
-
-## 🚀 Future Enhancements
-
-* Load previously saved games automatically
-* Add timer and mine counter display
-* Difficulty presets (Beginner / Intermediate / Expert)
-* Windows console compatibility without WSL
+- The **Board** class encapsulates all rules, tile states, and win/loss conditions.
+- The **ncurses UI** (`tui/app.cpp`) acts as a front-end layer, calling only public methods like:
+  - `getRows()`, `getColumns()`
+  - `reveal(row, col)`
+  - `toggleTile(row, col)`
+  - `getTile(row, col)`
+  - `save(path)` / `load(path)`
+- This separation makes it easy to reuse `Board` in other environments (e.g., GUI, Unreal Engine, or web apps).
 
 ---
 
-## 🪪 License
+## 🧪 Testing
 
-MIT License © 2025 Rodney Aiglstorfer
-You’re free to use, modify, and distribute this code — just keep attribution.
+The `tests/main.cpp` file (if present) can be used as a standalone tester for the `Board` class without ncurses dependencies.
 
----
-
-## 🖼️ Screenshots
-
-*(Optional — place screenshots in `/docs/`)*
-
-```
-docs/
-├── screenshot.png
-└── gameplay.gif
-```
-
-Example placeholder:
-![Gameplay Example](docs/gameplay.gif)
-
----
-
-## ❤️ Acknowledgments
-
-Built with love for the command line.
-Inspired by the classic Minesweeper that taught us patience, logic, and humility.
-
----
-
-## 🧩 Usage
-
-You can start the game with optional parameters for **board size** and **mine count**.
-If omitted, defaults are used: `{board-size:10}` `{mine-count:4}`
-
+Example:
 ```bash
-./bin/minesweeper {board-size:10} {mine-count:4}
-```
-
-Examples:
-
-```bash
-./bin/minesweeper          # 10x10 board, 4 mines (default)
-./bin/minesweeper 12 10    # 12x12 board, 10 mines
-./bin/minesweeper 20 40    # 20x20 board, 40 mines
+g++ -std=c++17 -Iinclude tests/main.cpp src/minesweeper.cpp -o build/bin/ms_test
+./build/bin/ms_test
 ```
 
 ---
 
-```
+## 🖋️ Author
+
+**Rodney Aiglstorfer**  
+Graduate Student – Duke University, Game Design, Development & Innovation  
+GitHub: [@RodneyAiglstorfer](https://github.com/RodneyAiglstorfer)
 
 ---
 
+## 🧾 License
+
+MIT License © 2025  
+Feel free to use, modify, and distribute this project for educational or personal purposes.
