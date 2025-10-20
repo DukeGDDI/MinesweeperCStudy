@@ -2,18 +2,25 @@
 // Controls:
 //   Arrows / H J K L  → move cursor
 //   Space / Enter     → reveal
-//   f                 → flag / cycle flag (uses Board::toggleTile)
-//   m                 → chord (auto-reveal neighbors when flags match number)
+//   f                 → flag / cycle flag (Board::toggleTile)
 //   r                 → restart same config
+//   s                 → save to the current save path
 //   q                 → quit
 //
-// Run: ./ms_tui [rows] [cols] [mines]   (defaults 16 30 99)
+// Run:
+//   ./ms_tui                 (defaults: 16 30 99)
+//   ./ms_tui 10 20 40       (rows cols mines)
+//   ./ms_tui savefile.txt   (load from file)
+//
+// Link: -lncursesw (Linux) or -lncurses (macOS)
 
 #include <ncurses.h>
+#include <locale.h>
 #include <cstdlib>
 #include <string>
 #include <algorithm>
 #include "minesweeper.hpp"
+using namespace std;
 
 struct Config { int rows=16, cols=30, mines=99; };
 struct Cursor { int r=0, c=0; };
@@ -42,17 +49,8 @@ static short num_color(int n){
                default:return CP_DEFAULT;}
 }
 
-struct Layout { int top=0,left=0,cellw=2; };
-static Layout layout_for(int term_r,int term_c,int rows,int cols){
-    Layout L;
-    int w = cols * L.cellw + 2;
-    int h = rows + 2;
-    L.top  = 1;   // small margin from top (or 0 if you prefer flush)
-    L.left = 1;   // small margin from left
-    return L;
-}
-
-static bool is_flag(TileState s){ return s==FLAGGED || s==QUESTIONED; }
+struct Layout { int top=1, left=1, cellw=2; }; // left/top aligned with small margin
+static Layout layout_for_left(int /*term_r*/,int /*term_c*/,int /*rows*/,int /*cols*/) { return {}; }
 
 static bool check_win(Board& B){
     for(int r=0;r<B.getRows();++r)
@@ -61,6 +59,14 @@ static bool check_win(Board& B){
             if(!t.isMine && t.state!=REVEALED) return false;
         }
     return true;
+}
+
+static int count_mines(Board& B){
+    int m=0;
+    for(int r=0;r<B.getRows();++r)
+        for(int c=0;c<B.getColumns();++c)
+            if(B.getTile(r,c).isMine) ++m;
+    return m;
 }
 
 static void draw_frame(const Layout& L,int R,int C){
@@ -74,109 +80,88 @@ static void draw_frame(const Layout& L,int R,int C){
     attroff(COLOR_PAIR(CP_FRAME));
 }
 
-static void draw_board(Board& B, const Layout& L, const Cursor& cur, bool over, int boom_r, int boom_c) {
-    const int R = B.getRows(), C = B.getColumns();
-    draw_frame(L, R, C);
+static void draw_board(Board& B,const Layout& L,const Cursor& cur,bool over,int boom_r,int boom_c){
+    int R=B.getRows(), C=B.getColumns(); draw_frame(L,R,C);
+    for(int r=0;r<R;++r)for(int c=0;c<C;++c){
+        int y=L.top+1+r, x=L.left+1+c*L.cellw;
+        Tile t=B.getTile(r,c);
+        bool on=(r==cur.r && c==cur.c);
 
-    for (int r = 0; r < R; ++r) {
-        for (int c = 0; c < C; ++c) {
-            const int y = L.top + 1 + r;
-            const int x = L.left + 1 + c * L.cellw;
-            const bool on = (r == cur.r && c == cur.c);
+        // Always highlight the cursor (even on revealed cells)
+        if(on) attron(A_REVERSE);
 
-            const Tile t = B.getTile(r, c);
-
-            // Highlight cursor on ANY tile (revealed or not) without clobbering colors.
-            if (on) attron(A_REVERSE);
-
-            if (t.state == COVERED || t.state == FLAGGED || t.state == QUESTIONED) {
-                if (t.state == FLAGGED) {
-                    attron(COLOR_PAIR(CP_FLAG));
-                    mvprintw(y, x, "F ");
-                    attroff(COLOR_PAIR(CP_FLAG));
-                } else if (t.state == QUESTIONED) {
-                    attron(A_DIM);
-                    mvprintw(y, x, "? ");
-                    attroff(A_DIM);
-                } else {
-                    mvprintw(y, x, "[]");
-                }
-            } else { // REVEALED / EXPLODED
-                if (t.isMine) {
-                    if (over && r == boom_r && c == boom_c) {
-                        attron(COLOR_PAIR(CP_EXPLODE));
-                        mvprintw(y, x, "* ");
-                        attroff(COLOR_PAIR(CP_EXPLODE));
-                    } else {
-                        attron(COLOR_PAIR(CP_MINE));
-                        mvprintw(y, x, "* ");
-                        attroff(COLOR_PAIR(CP_MINE));
-                    }
-                } else if (t.adjacentMines == 0) {
-                    mvprintw(y, x, "  ");
-                } else {
-                    const short cp = num_color((int)t.adjacentMines);
-                    attron(COLOR_PAIR(cp) | A_BOLD);
-                    mvprintw(y, x, "%u ", t.adjacentMines);
-                    attroff(COLOR_PAIR(cp) | A_BOLD);
-                }
+        if(t.state==COVERED || t.state==FLAGGED || t.state==QUESTIONED){
+            if(t.state==FLAGGED){ attron(COLOR_PAIR(CP_FLAG)); mvprintw(y,x,"F "); attroff(COLOR_PAIR(CP_FLAG)); }
+            else if(t.state==QUESTIONED){ attron(A_DIM); mvprintw(y,x,"? "); attroff(A_DIM); }
+            else mvprintw(y,x,"[]");
+        }else{ // REVEALED / EXPLODED
+            if(t.isMine){
+                if(over && r==boom_r && c==boom_c){ attron(COLOR_PAIR(CP_EXPLODE)); mvprintw(y,x,"* "); attroff(COLOR_PAIR(CP_EXPLODE)); }
+                else { attron(COLOR_PAIR(CP_MINE)); mvprintw(y,x,"* "); attroff(COLOR_PAIR(CP_MINE)); }
+            }else if(t.adjacentMines==0){
+                mvprintw(y,x,"  ");
+            }else{
+                short cp=num_color((int)t.adjacentMines);
+                attron(COLOR_PAIR(cp)|A_BOLD);
+                mvprintw(y,x,"%u ",t.adjacentMines);
+                attroff(COLOR_PAIR(cp)|A_BOLD);
             }
-
-            if (on) attroff(A_REVERSE);
         }
+
+        if(on) attroff(A_REVERSE);
     }
 }
+
 static void draw_status(const Config& cfg,bool over,bool win,int y,int x){
     move(y,x); clrtoeol();
     if(over){
-        if(win){ attron(COLOR_PAIR(CP_WIN)|A_BOLD); mvprintw(y,x,"You win!  r=replay  q=quit"); attroff(COLOR_PAIR(CP_WIN)|A_BOLD); }
-        else   { attron(COLOR_PAIR(CP_LOSE)|A_BOLD); mvprintw(y,x,"BOOM! You lost. r=replay  q=quit"); attroff(COLOR_PAIR(CP_LOSE)|A_BOLD); }
+        if(win){ attron(COLOR_PAIR(CP_WIN)|A_BOLD); mvprintw(y,x,"You win!  r=replay  s=save  q=quit"); attroff(COLOR_PAIR(CP_WIN)|A_BOLD); }
+        else   { attron(COLOR_PAIR(CP_LOSE)|A_BOLD); mvprintw(y,x,"BOOM! You lost. r=replay  s=save  q=quit"); attroff(COLOR_PAIR(CP_LOSE)|A_BOLD); }
     }else{
-        mvprintw(y,x,"Arrows/HJKL move • Space/Enter reveal • f flag • m chord • r restart • q quit");
+        mvprintw(y,x,"Arrows/HJKL move | Space/Enter reveal | f flag | r restart | s save | q quit");
     }
-    mvprintw(std::max(0,y-1), x, "Minesweeper %dx%d (%d mines)", cfg.rows, cfg.cols, cfg.mines);
-}
-
-static void chord(Board& B,int r,int c,bool& over,bool& win,int& boom_r,int& boom_c){
-    Tile t=B.getTile(r,c); if(t.state!=REVEALED) return;
-    int need=t.adjacentMines, flags=0;
-    for(int dr=-1;dr<=1;++dr)for(int dc=-1;dc<=1;++dc){
-        if(!dr&&!dc) continue; int nr=r+dr,nc=c+dc;
-        if(!B.inBounds(nr,nc)) continue;
-        if(is_flag(B.getTile(nr,nc).state)) ++flags;
-    }
-    if(flags!=need) return;
-    for(int dr=-1;dr<=1;++dr)for(int dc=-1;dc<=1;++dc){
-        if(!dr&&!dc) continue; int nr=r+dr,nc=c+dc;
-        if(!B.inBounds(nr,nc)) continue;
-        if(B.getTile(nr,nc).state==COVERED){
-            bool boom=B.revealTile(nr,nc);
-            if(boom){ over=true; win=false; boom_r=nr; boom_c=nc; return; }
-        }
-    }
-    if(check_win(B)){ over=true; win=true; }
+    mvprintw(max(0,y-1), x, "Minesweeper %dx%d (%d mines)", cfg.rows, cfg.cols, cfg.mines);
 }
 
 int main(int argc,char** argv){
-    Config cfg;
-    if(argc==4){
-        cfg.rows = std::max(5, std::atoi(argv[1]));
-        cfg.cols = std::max(5, std::atoi(argv[2]));
-        cfg.mines= std::max(1, std::atoi(argv[3]));
-        cfg.mines= std::min(cfg.mines, std::max(1, cfg.rows*cfg.cols-1));
-    }
+    setlocale(LC_ALL, ""); // enable UTF-8 safely
 
-    Board board(cfg.rows,cfg.cols,cfg.mines);
+    Config cfg;               // defaults: 16x30, 99
+    string save_path = "save_game.txt";
+    Board board(cfg.rows, cfg.cols, cfg.mines); // will be replaced if we load
     Cursor cur{0,0};
     bool over=false, win=false; int boom_r=-1, boom_c=-1;
 
+    // --- CLI parsing ---
+    if(argc == 2){
+        save_path = argv[1];
+        ifstream ifs(save_path);
+        if(board.load(ifs)){
+            // infer config from the loaded board
+            cfg.rows  = board.getRows();
+            cfg.cols  = board.getColumns();
+            cfg.mines = count_mines(board);
+        } else {
+            // if load fails, keep defaults but remember the save path
+        }
+    } else if(argc == 4){
+        cfg.rows  = max(5, atoi(argv[1]));
+        cfg.cols  = max(5, atoi(argv[2]));
+        cfg.mines = max(1, atoi(argv[3]));
+        cfg.mines = min(cfg.mines, max(1, cfg.rows * cfg.cols - 1));
+        board = Board(cfg.rows, cfg.cols, cfg.mines);
+    } else {
+        // no args: defaults already set, board constructed above
+    }
+
+    // --- ncurses init ---
     initscr(); cbreak(); noecho(); keypad(stdscr, TRUE); curs_set(0);
     if(has_colors()) init_colors();
 
     bool running=true;
     while(running){
         int tr,tc; getmaxyx(stdscr,tr,tc);
-        Layout L=layout_for(tr,tc,board.getRows(),board.getColumns());
+        Layout L = layout_for_left(tr,tc,board.getRows(),board.getColumns());
         if(!board.inBounds(cur.r,cur.c)) cur={0,0};
 
         clear();
@@ -205,19 +190,23 @@ int main(int argc,char** argv){
                 if(!over) board.toggleTile(cur.r,cur.c);
                 break;
 
-            // chord
-            case 'm':
-                if(!over) chord(board,cur.r,cur.c,over,win,boom_r,boom_c);
-                break;
-
             // restart
             case 'r':
                 board = Board(cfg.rows,cfg.cols,cfg.mines);
                 cur={0,0}; over=false; win=false; boom_r=boom_c=-1;
                 break;
 
-            case 'q': running=false; break;
+            // save
+            case 's': {
+                ofstream ofs(save_path);
+                bool ok = board.save(ofs);   // uses your Board::save(...)
+                int y = L.top+3+board.getRows();
+                move(y, L.left); clrtoeol();
+                mvprintw(y, L.left, ok ? "Saved to %s" : "Save failed: %s", save_path.c_str());
+                refresh(); napms(500);
+            } break;
 
+            case 'q': running=false; break;
 #ifdef KEY_RESIZE
             case KEY_RESIZE: break;
 #endif
