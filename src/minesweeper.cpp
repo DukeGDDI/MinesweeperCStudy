@@ -111,14 +111,14 @@ Board::Board(istream& in) {
     this->calculateAdjacents();
 }
 
-// @return number of columns
-int Board::getColumns() {
-    return this->columns;
-}
-
 // @return number of rows
 int Board::getRows() {
     return this->rows;
+}
+
+// @return number of columns
+int Board::getColumns() {
+    return this->columns;
 }
 
 // Get tile state at (row,col)

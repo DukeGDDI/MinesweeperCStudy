@@ -43,7 +43,7 @@ void printBoardStates(Board& board) {
 }
 
 
-int main(int argc, char** argv) {
+int main() {
     istringstream iss(kTestBoard);
     Board board(iss);
 
