@@ -49,13 +49,13 @@ class Board {
         Board(istream& in);
 
         // @return number of rows
-        int getRows();
+        int getRows() const;
 
         // @return number of columns
-        int getColumns();
+        int getColumns() const;
 
         // @return tag state for tile at (row,col)
-        Tile getTile(int row, int col);
+        const Tile& getTile(int row, int col) const;
 
         // Reveal logic:
         // - If tile is FLAGGED/QUESTIONED/REVEALED: do nothing
@@ -77,7 +77,7 @@ class Board {
         int load(istream& out);
     
         // @return  true if (row,col) is within bounds of the board, false otherwise
-        bool inBounds(int row, int col);
+        bool inBounds(int row, int col) const;
     
         // Overload output operator for Board for debugging only
         // Shows all tiles regardless of state (e.g., covered tiles are shown)

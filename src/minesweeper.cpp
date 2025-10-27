@@ -112,17 +112,17 @@ Board::Board(istream& in) {
 }
 
 // @return number of rows
-int Board::getRows() {
+int Board::getRows() const {
     return this->rows;
 }
 
 // @return number of columns
-int Board::getColumns() {
+int Board::getColumns() const {
     return this->columns;
 }
 
 // Get tile state at (row,col)
-Tile Board::getTile(int row, int col) {
+const Tile& Board::getTile(int row, int col) const {
     // Assert is in bounds
     assert(inBounds(row, col) && "getTile: (row,col) out of bounds");
     return this->tiles[row][col];
@@ -181,7 +181,7 @@ TileState Board::toggleTile(int row, int col) {
     return tile.state;
 }
 
-bool Board::inBounds(int row, int col) {
+bool Board::inBounds(int row, int col) const {
     return (row >= 0 && row < this->rows && col >= 0 && col < this->columns);
 }
 
