@@ -204,7 +204,8 @@ int main(int argc,char** argv){
 
             // restart
             case 'r':
-                board = Board(cfg.rows,cfg.cols,cfg.mines);
+                //board = Board(cfg.rows,cfg.cols,cfg.mines);
+                board.reset(cfg.rows,cfg.cols,cfg.mines);
                 cur={0,0}; over=false; win=false; boom_r=boom_c=-1;
                 break;
 
