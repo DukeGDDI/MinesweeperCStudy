@@ -1,4 +1,12 @@
-# 🧨 Minesweeper (C++ + ncurses)
+```                                         
+ _____ _                                       
+|     |_|___ ___ ___ _ _ _ ___ ___ ___ ___ ___ 
+| | | | |   | -_|_ -| | | | -_| -_| . | -_|  _|
+|_|_|_|_|_|_|___|___|_____|___|___|  _|___|_|  
+                                  |_|          
+```                                                                            
+
+# 🧨 Minesweeper (C++ & ncurses)
 
 A classic **Minesweeper** implementation written in **modern C++**, featuring a fully playable ASCII-based UI built on **ncurses**.
 
@@ -53,22 +61,22 @@ make
 
 ### Start a new default game (16×30, 99 mines)
 ```bash
-./ms_tui
+./build/bin/minesweeper
 ```
 
 ### Start a custom game
 ```bash
-./ms_tui <rows> <columns> <mines>
+./build/bin/minesweeper <rows> <columns> <mines>
 # Example:
-./ms_tui 10 20 40
+./build/bin/minesweeper 10 20 40
 ```
 
 ### Resume from a saved game
 ```bash
-./ms_tui path/to/savefile.txt
+./build/bin/minesweeper path/to/savefile.txt
 ```
 
-If you omit the extension, it defaults to `ms_save.txt`.
+If you omit the extension, it defaults to `save_game.txt`.
 
 ---
 
@@ -89,7 +97,7 @@ If you omit the extension, it defaults to `ms_save.txt`.
 
 - Games are saved using the `Board::save(path)` method, which stores all tile states and metadata.  
 - Use `Board::load(path)` to restore a saved game.
-- When loading via command line (`./ms_tui savefile.txt`), the game infers board dimensions and mine count automatically.
+- When loading via command line (`./build/bin/minesweeper savefile.txt`), the game infers board dimensions and mine count automatically.
 
 ---
 

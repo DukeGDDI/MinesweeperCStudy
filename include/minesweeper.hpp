@@ -1,7 +1,19 @@
+/*                                       
+ *   _____ _                                       
+ *  |     |_|___ ___ ___ _ _ _ ___ ___ ___ ___ ___ 
+ *  | | | | |   | -_|_ -| | | | -_| -_| . | -_|  _|
+ *  |_|_|_|_|_|_|___|___|_____|___|___|  _|___|_|  
+ *                                  |_|          
+ */
+
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <memory>
 using namespace std;
+
+#ifndef MINESWEEPER_HPP
+#define MINESWEEPER_HPP
 
 // Define the tile states
  enum TileState {
@@ -15,9 +27,21 @@ using namespace std;
 // Overload output operator for TileState for debugging only
 ostream& operator<<(ostream& out, const TileState& state);
 
+// Forward-declare Board so the interface can reference it
+class Board;
+
+// Serializer interface: DI target
+struct ISerializable {
+    virtual ~ISerializable() = default;
+
+    // Save/load the Board through the interface (Board delegates to this)
+    virtual int save(const Board& board, std::ostream& out) = 0;
+    virtual int load(Board& board, std::istream& in) = 0;
+};
+
 // Define the tile structure
 struct Tile {
-    TileState state = COVERED;
+    TileState state = TileState::COVERED;
     bool isMine = false;
     unsigned int adjacentMines;
 
@@ -30,18 +54,14 @@ struct Tile {
 };
 
 class Board {
-    int rows;
-    int columns;
-    int mines;
-
-    vector<vector<Tile>> tiles;
-
     public:
         // Empty Constructor
-        Board() : Board(10, 10, 10) {};
+        Board();
+
+        Board(int rows, int columns, int mines);
 
         // Main Constructor
-        Board(int rows, int columns, int mines);
+        Board(int rows, int columns, int mines, std::shared_ptr<ISerializable> serializer);
 
         // Create Board from a stream (file).  This not the same as restoring a game 
         // from a file (see load() method).  This is used to create repeatable starting
@@ -53,6 +73,9 @@ class Board {
 
         // @return number of columns
         int getColumns() const;
+
+        // @return number of mines
+        int getMines() const;
 
         // @return tag state for tile at (row,col)
         const Tile& getTile(int row, int col) const;
@@ -79,14 +102,26 @@ class Board {
         // @return  true if (row,col) is within bounds of the board, false otherwise
         bool inBounds(int row, int col) const;
     
+        // Reset the board to initial state (with mines laid out)
+        void reset(int rows, int cols, int mines);
+
         // Overload output operator for Board for debugging only
         // Shows all tiles regardless of state (e.g., covered tiles are shown)
         friend ostream& operator<<(ostream& out, const Board& board);
         
         // Overload the equality operator for testing purposes
         friend bool operator==(const Board& b1, const Board& b2);
+
     
     private:
+        int rows;
+        int columns;
+        int mines;
+
+        vector<vector<Tile>> tiles;
+
+        // Injected dependency (shared_ptr lets you reuse a stateless singleton)
+        std::shared_ptr<ISerializable> serializer;
 
         // Randomly place mines and calculate adjacent mine counts
         void layMines();
@@ -94,3 +129,5 @@ class Board {
         // Calculate adjacent mine counts for all tiles
         void calculateAdjacents();
 };
+
+#endif // MINESWEEPER_HPP

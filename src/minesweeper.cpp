@@ -1,4 +1,13 @@
+/*                                       
+ *   _____ _                                       
+ *  |     |_|___ ___ ___ _ _ _ ___ ___ ___ ___ ___ 
+ *  | | | | |   | -_|_ -| | | | -_| -_| . | -_|  _|
+ *  |_|_|_|_|_|_|___|___|_____|___|___|  _|___|_|  
+ *                                  |_|          
+ */
+
 #include "minesweeper.hpp"
+#include "text_board_serializer.hpp"
 #include <cassert>
 
 
@@ -75,10 +84,13 @@ bool operator==(const Board& b1, const Board& b2) {
     return true;
 }
 
-Board::Board(int rows, int columns, int mines) {
-    this->rows = rows;
-    this->columns = columns;
-    this->mines = mines;
+Board::Board() : Board(16, 30, 99, std::make_shared<TextBoardSerializer>()) {}
+
+Board::Board(int rows, int columns, int mines) : 
+    Board(rows, columns, mines, std::make_shared<TextBoardSerializer>()) {}
+
+Board::Board(int rows, int columns, int mines, std::shared_ptr<ISerializable> serializer) : 
+    rows(rows), columns(columns), mines(mines), serializer(serializer) {
     this->tiles.resize(this->rows, vector<Tile>(this->columns));
     this->layMines();
     this->calculateAdjacents();
@@ -99,13 +111,15 @@ Board::Board(int rows, int columns, int mines) {
 Board::Board(istream& in) {
     in >> this->rows >> this->columns >> this->mines;
     this->tiles.resize(this->rows, vector<Tile>(this->columns));
+    Tile t;
     for (int r = 0; r < this->rows; r++) {
         for (int c = 0; c < this->columns; c++) {
             char ch;
             in >> ch;
-            this->tiles[r][c].state = COVERED; // redundant but explicit
-            this->tiles[r][c].isMine = (ch == '*') ? true : false;
-            this->tiles[r][c].adjacentMines = 0; // redundant but explicit
+            t = this->tiles[r][c];
+            t.state = TileState::COVERED; // redundant but explicit
+            t.isMine = (ch == '*') ? true : false;
+            t.adjacentMines = 0; // redundant but explicit
         }
     }
     this->calculateAdjacents();
@@ -121,6 +135,11 @@ int Board::getColumns() const {
     return this->columns;
 }
 
+// @return number of mines
+int Board::getMines() const {
+    return this->mines;
+}
+
 // Get tile state at (row,col)
 const Tile& Board::getTile(int row, int col) const {
     // Assert is in bounds
@@ -133,15 +152,15 @@ bool Board::revealTile(int row, int col) {
     assert(inBounds(row, col) && "revealTile: (row,col) out of bounds");
     
     Tile& tile = this->tiles[row][col];
-    if (tile.state == REVEALED || tile.state == FLAGGED || tile.state == QUESTIONED) {
+    if (tile.state == TileState::REVEALED || tile.state == TileState::FLAGGED || tile.state == TileState::QUESTIONED) {
         return false; // do nothing
     }
     if (tile.isMine) {
-        tile.state = EXPLODED;
+        tile.state = TileState::EXPLODED;
         return true; // mine revealed
     }
     // Reveal this tile
-    tile.state = REVEALED;
+    tile.state = TileState::REVEALED;
     // If no adjacent mines, reveal neighbors
     if (tile.adjacentMines == 0) {
         for (int dr = -1; dr <= 1; dr++) {
@@ -164,14 +183,14 @@ TileState Board::toggleTile(int row, int col) {
 
     Tile& tile = this->tiles[row][col];
     switch (tile.state) {
-        case COVERED:
-            tile.state = FLAGGED;
+        case TileState::COVERED:
+            tile.state = TileState::FLAGGED;
             break;
-        case FLAGGED:
-            tile.state = QUESTIONED;
+        case TileState::FLAGGED:
+            tile.state = TileState::QUESTIONED;
             break;
-        case QUESTIONED:
-            tile.state = COVERED;
+        case TileState::QUESTIONED:
+            tile.state = TileState::COVERED;
             break;
         default:
             // Do nothing for REVEALED or EXPLODED
@@ -183,6 +202,16 @@ TileState Board::toggleTile(int row, int col) {
 
 bool Board::inBounds(int row, int col) const {
     return (row >= 0 && row < this->rows && col >= 0 && col < this->columns);
+}
+
+void Board::reset(int rows, int cols, int mines) {
+    this->rows = rows;
+    this->columns = cols;
+    this->mines = mines;
+    this->tiles.clear();
+    this->tiles.resize(this->rows, vector<Tile>(this->columns));
+    this->layMines();
+    this->calculateAdjacents();
 }
 
 // Randomly place mines and calculate adjacent mine counts
@@ -233,38 +262,10 @@ void Board::calculateAdjacents() {
 }
 
 int Board::save(ostream& out) {
-    // Save rows, columns, mines
-    out << this->rows << " " << this->columns << " " << this->mines << "\n";
-    // Save each tile's state
-    for (int r = 0; r < this->rows; r++) {
-        for (int c = 0; c < this->columns; c++) {
-            Tile& tile = this->tiles[r][c];
-            out << static_cast<int>(tile.state) << " " << tile.isMine << " " << tile.adjacentMines << "\n";
-        }
-    }
-    return 0; // success
+    return serializer->save(*this, out);
 }
 
 int Board::load(istream& in) {
-    int r, c, m;
-    in >> r >> c >> m;
-    if (r <= 0 || c <= 0 || m < 0) {
-        return -1; // invalid dimensions
-    }
-    this->rows = r;
-    this->columns = c;
-    this->mines = m;
-    this->tiles.resize(this->rows, vector<Tile>(this->columns));
-    for (int row = 0; row < this->rows; row++) {
-        for (int col = 0; col < this->columns; col++) {
-            int stateInt;
-            bool isMine;
-            unsigned int adjacentMines;
-            in >> stateInt >> isMine >> adjacentMines;
-            this->tiles[row][col].state = static_cast<TileState>(stateInt);
-            this->tiles[row][col].isMine = isMine;
-            this->tiles[row][col].adjacentMines = adjacentMines;
-        }
-    }
-    return 0; // success
+    return serializer->load(*this, in);
 }
+
