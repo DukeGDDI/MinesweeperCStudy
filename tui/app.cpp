@@ -1,18 +1,30 @@
-// tui/app.cpp
-// Controls:
-//   Arrows / H J K L  → move cursor
-//   Space / Enter     → reveal
-//   f                 → flag / cycle flag (Board::toggleTile)
-//   r                 → restart same config
-//   s                 → save to the current save path
-//   q                 → quit
-//
-// Run:
-//   ./ms_tui                 (defaults: 16 30 99)
-//   ./ms_tui 10 20 40       (rows cols mines)
-//   ./ms_tui savefile.txt   (load from file)
-//
-// Link: -lncursesw (Linux) or -lncurses (macOS)
+/* =============================================================                                       
+ *   _____ _                                       
+ *  |     |_|___ ___ ___ _ _ _ ___ ___ ___ ___ ___ 
+ *  | | | | |   | -_|_ -| | | | -_| -_| . | -_|  _|
+ *  |_|_|_|_|_|_|___|___|_____|___|___|  _|___|_|  
+ *                                  |_|                
+ *
+ * =============================================================
+ *
+ * tui/app.cpp
+ * Controls:
+ *   Arrows / H J K L  → move cursor
+ *   Space / Enter     → reveal
+ *   f                 → flag / cycle flag (Board::toggleTile)
+ *   r                 → restart same config
+ *   s                 → save to the current save path
+ *   q                 → quit
+ *
+ * Run:
+ *   ./ms_tui                 (defaults: 16 30 99)
+ *   ./ms_tui 10 20 40       (rows cols mines)
+ *   ./ms_tui savefile.txt   (load from file)
+ *
+ * Link: -lncursesw (Linux) or -lncurses (macOS)
+ * 
+ * =============================================================
+ */
 
 #include <ncurses.h>
 #include <locale.h>

@@ -3,3 +3,4 @@ minesweeper
 *.o
 savegame.*
 save_game.*
+saved_game.*
