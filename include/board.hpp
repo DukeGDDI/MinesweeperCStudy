@@ -10,23 +10,13 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include "tile_state.hpp"
+#include "tile.hpp"
+
 using namespace std;
 
-#ifndef MINESWEEPER_HPP
-#define MINESWEEPER_HPP
-
-// Define the tile states
- enum TileState {
-    COVERED,
-    REVEALED,
-    FLAGGED,
-    QUESTIONED,
-    EXPLODED
-};
-
-// Overload output operator for TileState for debugging only
-ostream& operator<<(ostream& out, const TileState& state);
-
+#ifndef BOARD
+#define BOARD
 // Forward-declare Board so the interface can reference it
 class Board;
 
@@ -37,20 +27,6 @@ struct ISerializable {
     // Save/load the Board through the interface (Board delegates to this)
     virtual int save(const Board& board, std::ostream& out) = 0;
     virtual int load(Board& board, std::istream& in) = 0;
-};
-
-// Define the tile structure
-struct Tile {
-    TileState state = TileState::COVERED;
-    bool isMine = false;
-    unsigned int adjacentMines;
-
-    // Overload output operator for Tile for debugging only
-    // Shows the tile content regardless of state
-    friend ostream& operator<<(ostream& out, const Tile& tile);
-
-    // Overload the equality operator for testing purposes
-    friend bool operator==(const Tile& t1, const Tile& t2);
 };
 
 class Board {
@@ -130,4 +106,4 @@ class Board {
         void calculateAdjacents();
 };
 
-#endif // MINESWEEPER_HPP
+#endif // BOARD

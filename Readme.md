@@ -106,16 +106,22 @@ If you omit the extension, it defaults to `save_game.txt`.
 ```
 minesweeper/
 ├── include/
-│   └── minesweeper.hpp        # Core game logic header
+│   └── board.hpp             
+|   └── text_board_serializer.hpp
+|   └── tile_state.hpp
+|   └── tile.hpp
 ├── src/
-│   └── minesweeper.cpp        # Game logic implementation
+│   └── minesweeper.cpp        
+|   └── text_board_serializer.cpp
+|   └── tile_state.cpp
+|   └── tile.cpp
 ├── tui/
 │   └── app.cpp                # ncurses interface (this app)
 ├── tests/
-│   └── main.cpp               # Optional test harness
+│   └── test_board.cpp         # Unit Tests
 ├── build/
-│   ├── bin/                   # Compiled binaries
-│   └── lib/                   # Optional static libs
+│   ├── bin/                   # Compiled binaries "minesweeper" and "minesweeper_tests"
+│   └── lib/                   # Optional static libs and minesweeper.o
 └── README.md
 ```
 
@@ -158,3 +164,25 @@ GitHub: [@RodneyAiglstorfer](https://github.com/RodneyAiglstorfer)
 
 MIT License © 2025  
 Feel free to use, modify, and distribute this project for educational or personal purposes.
+
+## Dependencies
+
+### GTest
+
+```
+git submodule add https://github.com/google/googletest.git third_party/googletest
+git submodule update --init --recursive
+```
+
+### Ubuntu/Debian Linux
+```
+sudo apt-get update
+sudo apt-get install -y libgtest-dev
+# libgtest-dev ships sources; build locally:
+cd /usr/src/googletest
+sudo cmake -S . -B build && sudo cmake --build build --target install
+```
+### MacOS (Homebrew)
+```
+brew install googletest
+```

@@ -5,57 +5,13 @@
  *  |_|_|_|_|_|_|___|___|_____|___|___|  _|___|_|  
  *                                  |_|          
  */
-
-#include "minesweeper.hpp"
-#include "text_board_serializer.hpp"
+#include <memory>
+#include <iostream>
 #include <cassert>
+#include "board.hpp"
+#include "text_board_serializer.hpp"
 
-
-// Overload output operator for TileState for debugging only
-ostream& operator<<(ostream& out, const TileState& state) {
-    switch (state) {
-        case COVERED:
-            out << "COVERED";
-            break;
-        case REVEALED:
-            out << "REVEALED";
-            break;
-        case FLAGGED:
-            out << "FLAGGED";
-            break;
-        case QUESTIONED:
-            out << "QUESTIONED";
-            break;
-        case EXPLODED:
-            out << "EXPLODED";
-            break;
-        default:
-            out << "UNKNOWN";
-            break;
-    }
-    return out;
-}
-
-// Overload output operator for Tile
-ostream& operator<<(ostream& out, const Tile& tile) {
-    if (tile.isMine) {
-        out << "*";
-        return out;
-    }
-    if (tile.adjacentMines == 0) {
-        out << ".";
-        return out;
-    }
-    out << tile.adjacentMines;
-    return out;
-}
-
-// Overload the equality operator for testing purposes
-bool operator==(const Tile& t1, const Tile& t2) {
-    return (t1.state == t2.state &&
-            t1.isMine == t2.isMine &&
-            t1.adjacentMines == t2.adjacentMines);
-}
+using namespace std;
 
 // Overload output operator for Board for debugging only
 // Shows all tiles regardless of state (e.g., covered tiles are shown)

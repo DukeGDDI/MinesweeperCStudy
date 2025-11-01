@@ -1,74 +1,115 @@
-# =========================================
-# Compiler setup
-# =========================================
+# =========================
+# Minesweeper Makefile
+# Layout assumed:
+# include/*.hpp
+# src/*.cpp                 -> core library
+# tui/app.cpp               -> ncurses app
+# tests/*.cpp               -> gtest unit tests
+# build/bin/*               -> executables
+# build/lib/*               -> static libs
+# build/obj/*               -> object files
+# =========================
+
+# --- Compilers & Flags ---
 CXX      := g++
-CXXFLAGS := -Wall -Wextra -O2 -std=c++17 -Iinclude -MMD -MP
+CXXFLAGS := -std=c++17 -Wall -Wextra -O2 -Iinclude -MMD -MP
 
-# =========================================
-# Directory structure
-# =========================================
+# Try pkg-config first, then fall back to common linker flags
+NCURSES_LIBS := $(shell pkg-config --libs ncurses 2>/dev/null || echo -lncurses)
+GTEST_LIBS   := $(shell pkg-config --libs gtest 2>/dev/null || echo -lgtest -lgtest_main -lpthread)
+
+# --- Paths ---
+BUILD_DIR := build
+BIN_DIR   := $(BUILD_DIR)/bin
+LIB_DIR   := $(BUILD_DIR)/lib
+OBJ_DIR   := $(BUILD_DIR)/obj
+
 SRC_DIR   := src
-INC_DIR   := include
-TEST_DIR  := tests
 TUI_DIR   := tui
-OBJ_DIR   := build/obj
-BIN_DIR   := build/bin
+TEST_DIR  := tests
 
-# =========================================
-# Source files
-# =========================================
-SRC_FILES   := $(wildcard $(SRC_DIR)/*.cpp)
-TEST_FILES  := $(wildcard $(TEST_DIR)/*.cpp)
-TUI_FILES   := $(wildcard $(TUI_DIR)/*.cpp)
+# --- Targets (files) ---
+APP_EXE   := $(BIN_DIR)/minesweeper
+TEST_EXE  := $(BIN_DIR)/minesweeper_tests
+LIB_FILE  := $(LIB_DIR)/minesweeperlib.a   # static lib to link app & tests
 
-# =========================================
-# Object and dependency files
-# =========================================
-OBJ_FILES   := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES) $(TEST_FILES) $(TUI_FILES))
-DEP_FILES   := $(OBJ_FILES:.o=.d)
+# --- Sources & Objects ---
+# All core sources become part of the static library
+SRCS_CORE := $(wildcard $(SRC_DIR)/*.cpp)
+OBJS_CORE := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/$(SRC_DIR)/%.o,$(SRCS_CORE))
 
-# =========================================
-# Executables
-# =========================================
-TEST_BIN := $(BIN_DIR)/ms_test
-TUI_BIN  := $(BIN_DIR)/minesweeper
+# App (ncurses)
+SRC_APP   := $(TUI_DIR)/app.cpp
+OBJ_APP   := $(OBJ_DIR)/$(TUI_DIR)/app.o
 
-# =========================================
-# Default target
-# =========================================
-all: $(TEST_BIN) $(TUI_BIN)
+# Tests
+SRCS_TEST := $(wildcard $(TEST_DIR)/*.cpp)
+OBJS_TEST := $(patsubst $(TEST_DIR)/%.cpp,$(OBJ_DIR)/$(TEST_DIR)/%.o,$(SRCS_TEST))
 
-# =========================================
-# Link rules
-# =========================================
-$(TEST_BIN): $(filter $(OBJ_DIR)/$(SRC_DIR)/%.o $(OBJ_DIR)/$(TEST_DIR)/%.o,$(OBJ_FILES))
-	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+# --- Phony targets ---
+.PHONY: all clean buildlib buildapp buildtests test
 
-$(TUI_BIN): $(filter $(OBJ_DIR)/$(SRC_DIR)/%.o $(OBJ_DIR)/$(TUI_DIR)/%.o,$(OBJ_FILES))
-	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@ -lncursesw   # link ncursesw if using curses UI
+# all: clean, then build everything
+all: clean buildlib buildapp buildtests
 
-# =========================================
-# Compile rule (generic)
-# =========================================
-$(OBJ_DIR)/%.o: %.cpp $(INC_DIR)/minesweeper.hpp
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# =========================================
-# Utility targets
-# =========================================
-run-test: $(TEST_BIN)
-	$(TEST_BIN)
-
-run-tui: $(TUI_BIN)
-	$(TUI_BIN)
-
+# clean: blow away build dir
 clean:
-	rm -rf build
+	@echo ">> Cleaning build directory"
+	@rm -rf $(BUILD_DIR)
 
-.PHONY: all clean run-test run-tui
+# buildlib: archive core sources into a static library
+buildlib: $(LIB_FILE)
 
-# Auto-include header dependencies
-#-include $(DEP_FILES)
+# buildapp: build ncurses app (depends on lib)
+buildapp: $(APP_EXE)
+
+# buildtests: compile all tests & link (depends on lib)
+buildtests: $(TEST_EXE)
+
+# test: run the compiled tests
+test: buildtests
+	@echo ">> Running tests"
+	@$(TEST_EXE)
+
+# --- Link rules ---
+$(APP_EXE): $(OBJ_APP) $(LIB_FILE) | $(BIN_DIR)
+	@echo ">> Linking $@"
+	@$(CXX) $(CXXFLAGS) -o $@ $(OBJ_APP) $(LIB_FILE) $(NCURSES_LIBS)
+
+$(TEST_EXE): $(OBJS_TEST) $(LIB_FILE) | $(BIN_DIR)
+	@echo ">> Linking $@"
+	@$(CXX) $(CXXFLAGS) -o $@ $(OBJS_TEST) $(LIB_FILE) $(GTEST_LIBS)
+
+# --- Library archive rule ---
+$(LIB_FILE): $(OBJS_CORE) | $(LIB_DIR)
+	@echo ">> Archiving $@"
+	@ar rcs $@ $(OBJS_CORE)
+
+# --- Compile rules (pattern) ---
+# Core objects
+$(OBJ_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)/$(SRC_DIR)
+	@echo ">> Compiling $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# App object
+$(OBJ_DIR)/$(TUI_DIR)/%.o: $(TUI_DIR)/%.cpp | $(OBJ_DIR)/$(TUI_DIR)
+	@echo ">> Compiling $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Test objects
+$(OBJ_DIR)/$(TEST_DIR)/%.o: $(TEST_DIR)/%.cpp | $(OBJ_DIR)/$(TEST_DIR)
+	@echo ">> Compiling $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# --- Auto-create directories ---
+$(BIN_DIR) $(LIB_DIR) $(OBJ_DIR) $(OBJ_DIR)/$(SRC_DIR) $(OBJ_DIR)/$(TUI_DIR) $(OBJ_DIR)/$(TEST_DIR):
+	@mkdir -p $@
+
+# --- Dependencies ---
+# Include auto-generated .d files if they exist
+DEP_FILES := \
+  $(OBJS_CORE:.o=.d) \
+  $(OBJ_APP:.o=.d)  \
+  $(OBJS_TEST:.o=.d)
+
+-include $(DEP_FILES)

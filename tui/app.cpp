@@ -31,7 +31,7 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
-#include "minesweeper.hpp"
+#include "board.hpp"
 using namespace std;
 
 struct Config { int rows=16, cols=30, mines=99; };

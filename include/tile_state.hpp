@@ -6,13 +6,20 @@
  *                                  |_|          
  */
 #include <iostream>
-#include "board.hpp"
+using namespace std;
 
-#ifndef TEXTBOARD_SERIALIZER
-#define TEXTBOARD_SERIALIZER
-class TextBoardSerializer : public ISerializable {
-public:
-    int save(const Board& board, std::ostream& out) override;
-    int load(Board& board, std::istream& in) override;
+#ifndef TILE_STATE
+#define TILE_STATE
+// Define the tile states
+ enum TileState {
+    COVERED,
+    REVEALED,
+    FLAGGED,
+    QUESTIONED,
+    EXPLODED
 };
+
+// Overload output operator for TileState for debugging only
+ostream& operator<<(ostream& out, const TileState& state);
+
 #endif
