@@ -67,15 +67,13 @@ Board::Board(int rows, int columns, int mines, std::shared_ptr<ISerializable> se
 Board::Board(istream& in) {
     in >> this->rows >> this->columns >> this->mines;
     this->tiles.resize(this->rows, vector<Tile>(this->columns));
-    Tile t;
     for (int r = 0; r < this->rows; r++) {
         for (int c = 0; c < this->columns; c++) {
             char ch;
             in >> ch;
-            t = this->tiles[r][c];
-            t.state = TileState::COVERED; // redundant but explicit
-            t.isMine = (ch == '*') ? true : false;
-            t.adjacentMines = 0; // redundant but explicit
+            this->tiles[r][c].state = TileState::COVERED; // redundant but explicit
+            this->tiles[r][c].isMine = (ch == '*') ? true : false;
+            this->tiles[r][c].adjacentMines = 0; // redundant but explicit
         }
     }
     this->calculateAdjacents();
@@ -179,16 +177,8 @@ void Board::layMines() {
         int r = rand() % this->rows;
         int c = rand() % this->columns;
         if (!this->tiles[r][c].isMine) {
-            this->tiles[r][c].isMine = 1;
+            this->tiles[r][c].isMine = true;
             placed++;
-            // Update adjacent mine counts
-            for (int dr = -1; dr <= 1; dr++) {
-                for (int dc = -1; dc <= 1; dc++) {
-                    if (inBounds(r + dr, c + dc)) {
-                        this->tiles[r + dr][c + dc].adjacentMines++;
-                    }
-                }
-            }
         }
     }
 }

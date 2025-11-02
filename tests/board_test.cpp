@@ -39,14 +39,12 @@ TEST(Board_FromText, DimensionsAndMineCountMatch) {
 
     EXPECT_EQ(board.getRows(), 5);
     EXPECT_EQ(board.getColumns(), 6);
+    EXPECT_EQ(board.getMines(), 4);
 
-    int actualMines = 0;
-    for (int r = 0; r < board.getRows(); ++r) {
-        for (int c = 0; c < board.getColumns(); ++c) {
-            if (board.getTile(r, c).isMine) ++actualMines;
-        }
-    }
-    EXPECT_EQ(actualMines, 4);
+    EXPECT_TRUE(board.getTile(0,2).isMine);
+    EXPECT_TRUE(board.getTile(1,1).isMine);
+    EXPECT_TRUE(board.getTile(2,3).isMine);
+    EXPECT_TRUE(board.getTile(4,5).isMine);
 }
 
 TEST(Board_FromText, InBoundsBehavior) {
@@ -83,6 +81,11 @@ TEST(Board_FromText, MineLocationsMatchLayout) {
 // Validate a handful of known adjacency counts derived from kTestBoard.
 // (We don't assert every cell to keep the test readable.)
 TEST(Board_Adjacency, KnownCountsAreCorrect) {
+    // . . * . . .
+    // . * . . . .
+    // . . . * . .
+    // . . . . . .
+    // . . . . . *
     std::istringstream iss(kTestBoard);
     Board board(iss);
 
@@ -90,7 +93,7 @@ TEST(Board_Adjacency, KnownCountsAreCorrect) {
     EXPECT_EQ(board.getTile(0,1).adjacentMines, 2u);
 
     // (1,2) touches (0,2) and (1,1) => 2
-    EXPECT_EQ(board.getTile(1,2).adjacentMines, 2u);
+    EXPECT_EQ(board.getTile(1,2).adjacentMines, 3u);
 
     // (2,2) touches (2,3) and (1,1) => 2
     EXPECT_EQ(board.getTile(2,2).adjacentMines, 2u);

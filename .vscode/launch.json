@@ -10,21 +10,8 @@
       "args": ["--gtest_color=yes"],
       "cwd": "${workspaceFolder}",
       "MIMode": "gdb",
-      "console": "integratedTerminal",
       "stopAtEntry": false,
-      "preLaunchTask": "make: test"
-    },
-    {
-      "name": "🔎 (Linux/macOS) minesweeper_tests (filter…)",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/bin/minesweeper_tests",
-      "args": ["--gtest_color=yes", "--gtest_filter=${input:gtestFilter}"],
-      "cwd": "${workspaceFolder}",
-      "MIMode": "gdb",
-      "console": "integratedTerminal",
-      "stopAtEntry": false,
-      "preLaunchTask": "make: test"
+      "preLaunchTask": "make: test (WSL)"
     }
   ],
   "inputs": [
