@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    /* ---- Linux/macOS variants (if you build on those too) ---- */
+    {
+      "name": "🔧 (Linux/macOS) minesweeper_tests (all)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/bin/minesweeper_tests",
+      "args": ["--gtest_color=yes"],
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "preLaunchTask": "make: test"
+    },
+    {
+      "name": "🔎 (Linux/macOS) minesweeper_tests (filter…)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/bin/minesweeper_tests",
+      "args": ["--gtest_color=yes", "--gtest_filter=${input:gtestFilter}"],
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "preLaunchTask": "make: test"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "gtestFilter",
+      "type": "promptString",
+      "description": "Enter --gtest_filter (e.g. Board_* or Tile_Stream.*)",
+      "default": "*"
+    }
+  ]
+}
