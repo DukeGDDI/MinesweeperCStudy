@@ -50,7 +50,7 @@ TEST(Board_FromText, DimensionsAndMineCountMatch) {
     int actualMines = 0;
     for (int r = 0; r < board.getRows(); ++r) {
         for (int c = 0; c < board.getColumns(); ++c) {
-            if (board.getTile(r, c).isMine) ++actualMines;
+            if (board.getTile(r, c)->isMine) ++actualMines;
         }
     }
     EXPECT_EQ(actualMines, 4);
@@ -80,7 +80,7 @@ TEST(Board_FromText, MineLocationsMatchLayout) {
     for (int r = 0; r < board.getRows(); ++r) {
         for (int c = 0; c < board.getColumns(); ++c) {
             bool expectMine = isExpectedMine(r, c);
-            EXPECT_EQ(board.getTile(r, c).isMine, expectMine) << "at (" << r << "," << c << ")";
+            EXPECT_EQ(board.getTile(r, c)->isMine, expectMine) << "at (" << r << "," << c << ")";
         }
     }
 }
@@ -94,19 +94,19 @@ TEST(Board_Adjacency, KnownCountsAreCorrect) {
     Board board(iss);
 
     // (0,1) touches mines at (0,2) and (1,1) => 2
-    EXPECT_EQ(board.getTile(0,1).adjacentMines, 2u);
+    EXPECT_EQ(board.getTile(0,1)->adjacentMines, 2u);
 
     // (1,2) touches (0,2) and (1,1) => 2
-    EXPECT_EQ(board.getTile(1,2).adjacentMines, 3u);
+    EXPECT_EQ(board.getTile(1,2)->adjacentMines, 3u);
 
     // (2,2) touches (2,3) and (1,1) => 2
-    EXPECT_EQ(board.getTile(2,2).adjacentMines, 2u);
+    EXPECT_EQ(board.getTile(2,2)->adjacentMines, 2u);
 
     // (3,4) touches (2,3) and (4,5) => 2
-    EXPECT_EQ(board.getTile(3,4).adjacentMines, 2u);
+    EXPECT_EQ(board.getTile(3,4)->adjacentMines, 2u);
 
     // (4,4) touches only (4,5) => 1
-    EXPECT_EQ(board.getTile(4,4).adjacentMines, 1u);
+    EXPECT_EQ(board.getTile(4,4)->adjacentMines, 1u);
 }
 
 // ---------- Reveal behavior ----------
@@ -116,13 +116,13 @@ TEST(Board_Reveal, RevealingSafeTileShowsRevealedAndNotGameOver) {
     Board board(iss);
 
     // Choose a safe tile known to be safe from the layout, e.g., (0,0)
-    ASSERT_FALSE(board.getTile(0,0).isMine);
-    EXPECT_EQ(board.getTile(0,0).state, TileState::COVERED);
+    ASSERT_FALSE(board.getTile(0,0)->isMine);
+    EXPECT_EQ(board.getTile(0,0)->state, TileState::COVERED);
 
     bool isGameOver = board.revealTile(0,0);
 
-    EXPECT_NE(board.getTile(0,0).state, TileState::COVERED);
-    EXPECT_NE(board.getTile(0,0).state, TileState::FLAGGED);
+    EXPECT_NE(board.getTile(0,0)->state, TileState::COVERED);
+    EXPECT_NE(board.getTile(0,0)->state, TileState::FLAGGED);
     EXPECT_FALSE(isGameOver);
 }
 
@@ -131,12 +131,12 @@ TEST(Board_Reveal, RevealingMineExplodesAndEndsGame) {
     Board board(iss);
 
     // Reveal a known mine, e.g., (0,2)
-    ASSERT_TRUE(board.getTile(0,2).isMine);
+    ASSERT_TRUE(board.getTile(0,2)->isMine);
 
     bool isGameOver = board.revealTile(0,2);
 
     EXPECT_TRUE(isGameOver);
-    EXPECT_EQ(board.getTile(0,2).state, TileState::EXPLODED);
+    EXPECT_EQ(board.getTile(0,2)->state, TileState::EXPLODED);
 }
 
 // ---------- Flag/mark cycle ----------
@@ -147,19 +147,19 @@ TEST(Board_Flagging, ToggleTileCyclesMarkStatesFromCovered) {
 
     // Use a safe, covered tile
     int r = 0, c = 0;
-    ASSERT_EQ(board.getTile(r,c).state, TileState::COVERED);
+    ASSERT_EQ(board.getTile(r,c)->state, TileState::COVERED);
 
     // 1st toggle -> FLAGGED
     board.toggleTile(r,c);
-    EXPECT_EQ(board.getTile(r,c).state, TileState::FLAGGED);
+    EXPECT_EQ(board.getTile(r,c)->state, TileState::FLAGGED);
 
     // 2nd toggle -> QUESTIONED (common convention)
     board.toggleTile(r,c);
-    EXPECT_EQ(board.getTile(r,c).state, TileState::QUESTIONED);
+    EXPECT_EQ(board.getTile(r,c)->state, TileState::QUESTIONED);
 
     // 3rd toggle -> back to COVERED
     board.toggleTile(r,c);
-    EXPECT_EQ(board.getTile(r,c).state, TileState::COVERED);
+    EXPECT_EQ(board.getTile(r,c)->state, TileState::COVERED);
 }
 
 // ---------- Save & Load ---------------
@@ -192,11 +192,11 @@ TEST(Board_SaveLoad, SaveThenLoad_RoundTripPreservesBoard) {
     // EXPECT_TRUE(restored == original) << "Round-trip mismatch: restored board != original";
     for (int r=0; r<9; r++) {
         for (int c=0; c<9; c++) {
-            Tile ot = original.getTile(r, c);
-            Tile rt = restored.getTile(r, c);
-            ASSERT_EQ(ot.isMine, rt.isMine) << "Tile.isMine at [" << r << "," << c << "] Not Equal";;
-            ASSERT_EQ(ot.adjacentMines, rt.adjacentMines) << "Tile.adjacentMines at [" << r << "," << c << "] Not Equal";;
-            ASSERT_EQ(ot.state, rt.state) << "Tile.state at [" << r << "," << c << "] Not Equal";;
+            Tile* ot = original.getTile(r, c);
+            Tile* rt = restored.getTile(r, c);
+            ASSERT_EQ(ot->isMine, rt->isMine) << "Tile.isMine at [" << r << "," << c << "] Not Equal";;
+            ASSERT_EQ(ot->adjacentMines, rt->adjacentMines) << "Tile.adjacentMines at [" << r << "," << c << "] Not Equal";;
+            ASSERT_EQ(ot->state, rt->state) << "Tile.state at [" << r << "," << c << "] Not Equal";;
             //ASSERT_EQ(original.getTile(r, c), restored.getTile(r, c)) << "Tiles at [" << r << "," << c << "] Not Equal";
         }
     }

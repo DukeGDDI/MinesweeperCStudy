@@ -25,7 +25,7 @@ struct ISerializable {
     virtual ~ISerializable() = default;
 
     // Save/load the Board through the interface (Board delegates to this)
-    virtual int save(const Board& board, std::ostream& out) = 0;
+    virtual int save(Board& board, std::ostream& out) = 0;
     virtual int load(Board& board, std::istream& in) = 0;
 };
 
@@ -54,7 +54,7 @@ class Board {
         int getMines() const;
 
         // @return tag state for tile at (row,col)
-        const Tile& getTile(int row, int col) const;
+        Tile* getTile(int row, int col);
 
         // Reveal logic:
         // - If tile is FLAGGED/QUESTIONED/REVEALED: do nothing

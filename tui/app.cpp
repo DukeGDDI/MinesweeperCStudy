@@ -67,8 +67,8 @@ static Layout layout_for_left(int /*term_r*/,int /*term_c*/,int /*rows*/,int /*c
 static bool check_win(Board& B){
     for(int r=0;r<B.getRows();++r)
         for(int c=0;c<B.getColumns();++c){
-            Tile t=B.getTile(r,c);
-            if(!t.isMine && t.state!=REVEALED) return false;
+            Tile* t=B.getTile(r,c);
+            if(!t->isMine && t->state!=REVEALED) return false;
         }
     return true;
 }
@@ -77,7 +77,7 @@ static int count_mines(Board& B){
     int m=0;
     for(int r=0;r<B.getRows();++r)
         for(int c=0;c<B.getColumns();++c)
-            if(B.getTile(r,c).isMine) ++m;
+            if(B.getTile(r,c)->isMine) ++m;
     return m;
 }
 
@@ -96,26 +96,26 @@ static void draw_board(Board& B,const Layout& L,const Cursor& cur,bool over,int 
     int R=B.getRows(), C=B.getColumns(); draw_frame(L,R,C);
     for(int r=0;r<R;++r)for(int c=0;c<C;++c){
         int y=L.top+1+r, x=L.left+1+c*L.cellw;
-        Tile t=B.getTile(r,c);
+        Tile* t=B.getTile(r,c);
         bool on=(r==cur.r && c==cur.c);
 
         // Always highlight the cursor (even on revealed cells)
         if(on) attron(A_REVERSE);
 
-        if(t.state==COVERED || t.state==FLAGGED || t.state==QUESTIONED){
-            if(t.state==FLAGGED){ attron(COLOR_PAIR(CP_FLAG)); mvprintw(y,x,"F "); attroff(COLOR_PAIR(CP_FLAG)); }
-            else if(t.state==QUESTIONED){ attron(A_DIM); mvprintw(y,x,"? "); attroff(A_DIM); }
+        if(t->state==COVERED || t->state==FLAGGED || t->state==QUESTIONED){
+            if(t->state==FLAGGED){ attron(COLOR_PAIR(CP_FLAG)); mvprintw(y,x,"F "); attroff(COLOR_PAIR(CP_FLAG)); }
+            else if(t->state==QUESTIONED){ attron(A_DIM); mvprintw(y,x,"? "); attroff(A_DIM); }
             else mvprintw(y,x,"[]");
         }else{ // REVEALED / EXPLODED
-            if(t.isMine){
+            if(t->isMine){
                 if(over && r==boom_r && c==boom_c){ attron(COLOR_PAIR(CP_EXPLODE)); mvprintw(y,x,"* "); attroff(COLOR_PAIR(CP_EXPLODE)); }
                 else { attron(COLOR_PAIR(CP_MINE)); mvprintw(y,x,"* "); attroff(COLOR_PAIR(CP_MINE)); }
-            }else if(t.adjacentMines==0){
+            }else if(t->adjacentMines==0){
                 mvprintw(y,x,"  ");
             }else{
-                short cp=num_color((int)t.adjacentMines);
+                short cp=num_color((int)t->adjacentMines);
                 attron(COLOR_PAIR(cp)|A_BOLD);
-                mvprintw(y,x,"%u ",t.adjacentMines);
+                mvprintw(y,x,"%u ",t->adjacentMines);
                 attroff(COLOR_PAIR(cp)|A_BOLD);
             }
         }

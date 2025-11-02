@@ -95,10 +95,10 @@ int Board::getMines() const {
 }
 
 // Get tile state at (row,col)
-const Tile& Board::getTile(int row, int col) const {
+Tile* Board::getTile(int row, int col) {
     // Assert is in bounds
     assert(inBounds(row, col) && "getTile: (row,col) out of bounds");
-    return this->tiles[row][col];
+    return &tiles[row][col];
 }
 
 bool Board::revealTile(int row, int col) {
