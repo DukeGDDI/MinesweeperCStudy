@@ -37,10 +37,22 @@ int TextBoardSerializer::load(Board& board, istream& in) {
             unsigned int adjacentMines;
             in >> stateInt >> isMine >> adjacentMines;
             tile = board.getTile(row, col);
-            tile.state = static_cast<TileState>(stateInt);
+            tile.state = intToTileState(stateInt);
             tile.isMine = isMine;
             tile.adjacentMines = adjacentMines;
         }
     }
     return 0; // success
+}
+
+TileState TextBoardSerializer::intToTileState(int value) {
+    switch (value) {
+        case static_cast<int>(TileState::REVEALED):      return TileState::REVEALED;
+        case static_cast<int>(TileState::FLAGGED):      return TileState::FLAGGED;
+        case static_cast<int>(TileState::QUESTIONED):      return TileState::QUESTIONED;
+        case static_cast<int>(TileState::EXPLODED):      return TileState::EXPLODED;
+        case static_cast<int>(TileState::COVERED):      return TileState::COVERED;
+        default:
+            throw std::out_of_range("Invalid TileState value: " + std::to_string(value));
+    }
 }

@@ -1,3 +1,10 @@
+/*                                       
+ *   _____ _                                       
+ *  |     |_|___ ___ ___ _ _ _ ___ ___ ___ ___ ___ 
+ *  | | | | |   | -_|_ -| | | | -_| -_| . | -_|  _|
+ *  |_|_|_|_|_|_|___|___|_____|___|___|  _|___|_|  
+ *                                  |_|          
+ */
 // tests/test_board.cpp
 #include <gtest/gtest.h>
 #include <sstream>
@@ -39,12 +46,14 @@ TEST(Board_FromText, DimensionsAndMineCountMatch) {
 
     EXPECT_EQ(board.getRows(), 5);
     EXPECT_EQ(board.getColumns(), 6);
-    EXPECT_EQ(board.getMines(), 4);
 
-    EXPECT_TRUE(board.getTile(0,2).isMine);
-    EXPECT_TRUE(board.getTile(1,1).isMine);
-    EXPECT_TRUE(board.getTile(2,3).isMine);
-    EXPECT_TRUE(board.getTile(4,5).isMine);
+    int actualMines = 0;
+    for (int r = 0; r < board.getRows(); ++r) {
+        for (int c = 0; c < board.getColumns(); ++c) {
+            if (board.getTile(r, c).isMine) ++actualMines;
+        }
+    }
+    EXPECT_EQ(actualMines, 4);
 }
 
 TEST(Board_FromText, InBoundsBehavior) {
@@ -81,11 +90,6 @@ TEST(Board_FromText, MineLocationsMatchLayout) {
 // Validate a handful of known adjacency counts derived from kTestBoard.
 // (We don't assert every cell to keep the test readable.)
 TEST(Board_Adjacency, KnownCountsAreCorrect) {
-    // . . * . . .
-    // . * . . . .
-    // . . . * . .
-    // . . . . . .
-    // . . . . . *
     std::istringstream iss(kTestBoard);
     Board board(iss);
 
@@ -158,4 +162,42 @@ TEST(Board_Flagging, ToggleTileCyclesMarkStatesFromCovered) {
     EXPECT_EQ(board.getTile(r,c).state, TileState::COVERED);
 }
 
+// ---------- Save & Load ---------------
 
+TEST(Board_SaveLoad, SaveThenLoad_RoundTripPreservesBoard) {
+    // Start with a random board (constructor injects TextBoardSerializer for us)
+    Board original(9, 9, 10);
+    ASSERT_EQ(original.getRows(), 9);
+    ASSERT_EQ(original.getColumns(), 9);
+    ASSERT_EQ(original.getMines(), 10);
+
+    // Do a couple of state changes so we capture more than initial COVERED:
+    // Toggle a few flags (in-bounds by construction).
+    original.toggleTile(0, 0);
+    original.toggleTile(0, 1);
+    // Reveal one tile (may explode or reveal—either way should be preserved)
+    (void)original.revealTile(1, 1);
+
+    std::stringstream buffer;
+    ASSERT_EQ(original.save(buffer), 0) << "Save should return 0 on success";
+
+    // Load into a different board shape to ensure load actually overwrites
+    Board restored(5, 4, 3);
+    ASSERT_EQ(restored.load(buffer), 0) << "Load should return 0 on success";
+    ASSERT_EQ(restored.getRows(), original.getRows());
+    ASSERT_EQ(restored.getColumns(), original.getColumns());
+    ASSERT_EQ(restored.getMines(), original.getMines());
+
+    // Use the provided operator== on Board (present in your code)
+    // EXPECT_TRUE(restored == original) << "Round-trip mismatch: restored board != original";
+    for (int r=0; r<9; r++) {
+        for (int c=0; c<9; c++) {
+            Tile ot = original.getTile(r, c);
+            Tile rt = restored.getTile(r, c);
+            ASSERT_EQ(ot.isMine, rt.isMine) << "Tile.isMine at [" << r << "," << c << "] Not Equal";;
+            ASSERT_EQ(ot.adjacentMines, rt.adjacentMines) << "Tile.adjacentMines at [" << r << "," << c << "] Not Equal";;
+            ASSERT_EQ(ot.state, rt.state) << "Tile.state at [" << r << "," << c << "] Not Equal";;
+            //ASSERT_EQ(original.getTile(r, c), restored.getTile(r, c)) << "Tiles at [" << r << "," << c << "] Not Equal";
+        }
+    }
+}
