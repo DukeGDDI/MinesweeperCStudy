@@ -9,7 +9,7 @@ using namespace std;
 struct Tile {
     TileState state = TileState::COVERED;
     bool isMine = false;
-    unsigned int adjacentMines;
+    unsigned int adjacentMines = 0;
 
     // Overload output operator for Tile for debugging only
     // Shows the tile content regardless of state
