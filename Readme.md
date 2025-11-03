@@ -12,7 +12,7 @@ A classic **Minesweeper** implementation written in **modern C++**, featuring a 
 
 This project cleanly separates the *game logic* (`build/lib/minesweeperlib.a`) from the *terminal interface* (`build/bin/minesweeper`), allowing both easy testing and option to leverage the core gameplay in other graphical formats besides the default ASCII based experienced provided with this project.
 
-> **RUBRIC COMPLIANCE** - This project was created as the Final Project for a programing course at Duke University for the Game Design Development and Innovation (GDDI) Master program.  The full compliance with the rubric of the assignment can be found in the [RubridReport.md](docs/RubricReport.md).
+> **RUBRIC COMPLIANCE** - This project was created as the Final Project for a programing course at Duke University for the Game Design Development and Innovation (GDDI) Master program.  The full compliance with the rubric of the assignment can be found in the [RubricReport.md](docs/RubricReport.md).
 
 
 ## 📖 Backstory
