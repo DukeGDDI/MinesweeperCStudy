@@ -6,8 +6,8 @@
  *                                  |_|          
  */
 
-#include "text_board_serializer.hpp"
-#include "board.hpp"
+#include "minesweeper/text_board_serializer.hpp"
+#include "minesweeper/board.hpp"
 
 int TextBoardSerializer::save(Board& board, ostream& out) {
     // Save rows, columns, mines

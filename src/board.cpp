@@ -8,8 +8,8 @@
 #include <memory>
 #include <iostream>
 #include <cassert>
-#include "board.hpp"
-#include "text_board_serializer.hpp"
+#include "minesweeper/board.hpp"
+#include "minesweeper/text_board_serializer.hpp"
 
 using namespace std;
 

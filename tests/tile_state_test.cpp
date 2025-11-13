@@ -8,7 +8,7 @@
 // tests/test_tile_state.cpp
 #include <gtest/gtest.h>
 #include <sstream>
-#include "tile_state.hpp"
+#include "minesweeper/tile_state.hpp"
 
 TEST(TileState_Stream, CoveredPrintsCovered) {
     std::ostringstream os;

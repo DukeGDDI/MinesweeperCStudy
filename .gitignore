@@ -1,5 +1,4 @@
 build
-minesweeper
 *.o
 savegame.*
 save_game.*

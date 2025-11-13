@@ -8,8 +8,8 @@
 // tests/test_tile.cpp
 #include <gtest/gtest.h>
 #include <sstream>
-#include "tile.hpp"
-#include "tile_state.hpp"
+#include "minesweeper/tile.hpp"
+#include "minesweeper/tile_state.hpp"
 
 // NOTE: Tile::adjacentMines is not initialized in the header.
 // Tests avoid asserting its default value and set it explicitly

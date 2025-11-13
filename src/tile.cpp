@@ -6,7 +6,7 @@
  *                                  |_|          
  */
 #include <iostream>
-#include "tile.hpp"
+#include "minesweeper/tile.hpp"
 
 using namespace std;
 

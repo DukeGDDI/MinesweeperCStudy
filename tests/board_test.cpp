@@ -9,9 +9,9 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <vector>
-#include "board.hpp"
-#include "tile.hpp"
-#include "tile_state.hpp"
+#include "minesweeper/board.hpp"
+#include "minesweeper/tile.hpp"
+#include "minesweeper/tile_state.hpp"
 
 // Fixed test board (5 rows, 6 cols, 4 mines)
 static const std::string kTestBoard = R"(
