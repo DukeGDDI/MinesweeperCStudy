@@ -10,9 +10,11 @@
 
 A classic **Minesweeper** implementation written in **modern C++**, featuring a fully playable ASCII-based UI built on **ncurses**.
 
-This project cleanly separates the *game logic* from the *terminal interface* (`build/minesweeper`), allowing both easy testing (`build/minesweeper_tests`) and options to leverage the core gameplay in other graphical formats besides the default ASCII based experienced provided with this project.
+This project cleanly separates the *game logic* (`build/lib/minesweeperlib.a`) from the *terminal interface* (`build/bin/minesweeper`), allowing both easy testing and option to leverage the core gameplay in other graphical formats besides the default ASCII based experienced provided with this project.
 
 > **RUBRIC COMPLIANCE** - This project was created as the Final Project for a programing course at Duke University for the Game Design Development and Innovation (GDDI) Master program.  The full compliance with the rubric of the assignment can be found in the [RubricReport.md](docs/RubricReport.md).
+
+> **IMPORTANT** - For instructions on how to build this game for your platform, see [BuildReadme.md](docs/BuildReadme.md)
 
 
 ## 📖 Backstory
